@@ -17,7 +17,7 @@ public class AccountService {
         this.accountRepository = accountRepository;
     }
 
-    public void createAccount(String accountNumber, long amount, Customer customer) throws SQLException {
+    void createAccount(String accountNumber, long amount, Customer customer) throws SQLException {
         Account account = accountRepository.findByAccountNumber(accountNumber);
         if (account != null) {
             print("account number is already taken", error);
@@ -43,7 +43,7 @@ public class AccountService {
         accountRepository.update(updatedAccount);
     }
 
-    public void withdraw(String accountNumber, long amount) throws SQLException {
+    void withdraw(String accountNumber, long amount) throws SQLException {
         Account account = accountRepository.findByAccountNumber(accountNumber);
         if (account == null) {
             print("account number is wrong", error);
@@ -64,7 +64,7 @@ public class AccountService {
         accountRepository.update(updatedAccount);
     }
 
-    public List<Account> findCustomerAccounts(Customer customer) throws SQLException {
+    List<Account> findCustomerAccounts(Customer customer) throws SQLException {
         return accountRepository.findByCustomerId(customer.id());
     }
 }
