@@ -1,12 +1,12 @@
 package ir.bootcamp.bank.service;
 
+import ir.bootcamp.bank.exceptions.BranchNotFoundException;
+import ir.bootcamp.bank.exceptions.EmployeeNotFoundException;
+import ir.bootcamp.bank.exceptions.IllegalBranchManagerException;
 import ir.bootcamp.bank.model.Branch;
 import ir.bootcamp.bank.model.BranchManager;
 import ir.bootcamp.bank.model.Employee;
 import ir.bootcamp.bank.repositories.BranchManagerRepository;
-
-import static ir.bootcamp.bank.util.ConsoleUtil.*;
-import static ir.bootcamp.bank.util.ConsoleMessageType.*;
 
 import java.sql.SQLException;
 
@@ -24,19 +24,16 @@ public class BranchManagerService {
     public void changeBranchManager(int branchId, int managerId) throws SQLException {
         Branch branch = branchService.find(branchId);
         if (branch == null) {
-            print("branch id is wrong", error);
-            return;
+            throw new BranchNotFoundException("branch id is wrong");
         }
 
         Employee employee = employeeService.find(managerId);
         if (employee == null) {
-            print("manager id is wrong", error);
-            return;
+            throw new EmployeeNotFoundException("manager id is wrong");
         }
 
         if (employee.branch().id() != branchId) {
-            print("this employee doesn't work at this branch", error);
-            return;
+            throw new IllegalBranchManagerException("this employee doesn't work at this branch");
         }
 
         BranchManager branchManager = branchManagerRepository.findByBranchId(branchId);
@@ -46,13 +43,11 @@ public class BranchManagerService {
                     branchManager.branch(),
                     employee
             ));
-            print("branch manager updated", success);
         } else {
             branchManagerRepository.add(new BranchManager(
                     branch,
                     employee
             ));
-            print("branch manager added", success);
         }
     }
 }

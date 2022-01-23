@@ -1,11 +1,11 @@
 package ir.bootcamp.bank.service;
 
+import ir.bootcamp.bank.exceptions.AccountExistsException;
+import ir.bootcamp.bank.exceptions.AccountNotEnoughBalanceException;
+import ir.bootcamp.bank.exceptions.AccountNotFoundException;
 import ir.bootcamp.bank.model.Account;
 import ir.bootcamp.bank.model.Customer;
 import ir.bootcamp.bank.repositories.AccountRepository;
-
-import static ir.bootcamp.bank.util.ConsoleMessageType.*;
-import static ir.bootcamp.bank.util.ConsoleUtil.*;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -20,8 +20,7 @@ public class AccountService {
     void createAccount(String accountNumber, long amount, Customer customer) throws SQLException {
         Account account = accountRepository.findByAccountNumber(accountNumber);
         if (account != null) {
-            print("account number is already taken", error);
-            return;
+            throw new AccountExistsException("this account number is already taken");
         }
 
         accountRepository.add(new Account(accountNumber, amount, customer));
@@ -30,8 +29,7 @@ public class AccountService {
     void deposit(String accountNumber, long amount) throws SQLException {
         Account account = accountRepository.findByAccountNumber(accountNumber);
         if (account == null) {
-            print("account number is wrong", error);
-            return;
+            throw new AccountNotFoundException("there is not account with this account number");
         }
 
         Account updatedAccount = new Account(
@@ -46,13 +44,11 @@ public class AccountService {
     void withdraw(String accountNumber, long amount) throws SQLException {
         Account account = accountRepository.findByAccountNumber(accountNumber);
         if (account == null) {
-            print("account number is wrong", error);
-            return;
+            throw new AccountNotFoundException("there is not account with this account number");
         }
 
         if (account.amount() < amount) {
-            print("your balance is not enough", error);
-            return;
+            throw new AccountNotEnoughBalanceException("your balance is not enough");
         }
 
         Account updatedAccount = new Account(

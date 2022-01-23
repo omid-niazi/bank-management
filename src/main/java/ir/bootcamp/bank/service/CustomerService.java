@@ -1,13 +1,10 @@
 package ir.bootcamp.bank.service;
 
-import ir.bootcamp.bank.model.Account;
+import ir.bootcamp.bank.exceptions.*;
 import ir.bootcamp.bank.model.Card;
 import ir.bootcamp.bank.model.Customer;
 import ir.bootcamp.bank.model.Transaction;
 import ir.bootcamp.bank.repositories.CustomerRepository;
-
-import static ir.bootcamp.bank.util.ConsoleUtil.*;
-import static ir.bootcamp.bank.util.ConsoleMessageType.*;
 
 import java.sql.Date;
 import java.sql.SQLException;
@@ -27,34 +24,35 @@ public class CustomerService {
 
     public boolean cardsAreValid(String fromCard, String toCard) throws SQLException {
         if (fromCard.length() != 16 || toCard.length() != 16) {
-            print("card numbers are not valid", error);
-            return false;
+            throw new InvalidCardNumberException("card number must be 16 character");
         }
 
         if (cardService.find(fromCard) == null || cardService.find(toCard) == null) {
-            print("entered card doesn't exists", error);
-            return false;
+            throw new CardNotFoundException("make sure enterd card numbers are correct");
         }
 
         return true;
     }
 
-    public void transfer(String fromCardNumber, String password, String cvv2, Date expireDate, long amount, String toCardNumber) throws SQLException {
+    public void transfer(String fromCardNumber, String password, short cvv2, Date expireDate, long amount, String toCardNumber) throws SQLException {
         Card fromCard = cardService.find(fromCardNumber);
-        if (!fromCard.password().equals(password) || !fromCard.cvv2().equals(cvv2) || !fromCard.expireDate().equals(expireDate)) {
-            print("authentication failed", error);
-            return;
+        if (!fromCard.password().equals(password)) {
+            throw new CardAuthenticationException("authentication failed your password is wrong");
+        }
+        if (fromCard.cvv2() != cvv2) {
+            throw new CardAuthenticationException("authentication failed your cvv2 is wrong");
+        }
+        if (!fromCard.expireDate().toLocalDate().isEqual(expireDate.toLocalDate())) {
+            throw new CardAuthenticationException("authentication failed expire date is wrong");
         }
         if (fromCard.account().amount() < amount) {
-            print("your money is not enough", error);
-            return;
+            throw new AccountNotEnoughBalanceException("your account balance is not enough");
         }
         Card toCard = cardService.find(toCardNumber);
         accountService.withdraw(fromCard.account().accountNumber(), amount);
         accountService.deposit(toCard.account().accountNumber(), amount);
         Transaction transaction = new Transaction(fromCard, toCard, amount, true);
         transactionService.makeTransaction(transaction);
-        print("transaction success", success);
     }
 
     public void changePassword(String cardNumber, String oldPassword, String newPassword) throws SQLException {
