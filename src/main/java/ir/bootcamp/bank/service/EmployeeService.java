@@ -1,6 +1,7 @@
 package ir.bootcamp.bank.service;
 
 import ir.bootcamp.bank.model.Account;
+import ir.bootcamp.bank.model.Branch;
 import ir.bootcamp.bank.model.Customer;
 import ir.bootcamp.bank.model.Employee;
 import ir.bootcamp.bank.repositories.EmployeeRepository;
@@ -42,12 +43,26 @@ public class EmployeeService {
         return true;
     }
 
+
     public void createEmployee(String name, String password) throws SQLException {
+        createEmployee(name, password, loggedInEmployee, loggedInEmployee.branch());
+    }
+
+    public void createEmployee(String name, String password, String branchName) throws SQLException {
+        Branch branch = branchService.find(branchName);
+        if (branch == null) {
+            print("branch name is not correct", error);
+            return;
+        }
+        createEmployee(name, password, null, branch);
+    }
+
+    public void createEmployee(String name, String password, Employee manager, Branch branch) throws SQLException {
         if (employeeRepository.findByName(name) != null) {
             print("name is already taken", error);
             return;
         }
-        Employee employee = new Employee(name, password, loggedInEmployee, loggedInEmployee.branch());
+        Employee employee = new Employee(name, password, manager, branch);
         employeeRepository.add(employee);
         print("employee record created", success);
     }

@@ -1,5 +1,6 @@
 package ir.bootcamp.bank.repositories;
 
+import com.sun.jdi.IntegerValue;
 import ir.bootcamp.bank.model.Branch;
 import ir.bootcamp.bank.model.Employee;
 
@@ -39,7 +40,10 @@ public class EmployeeRepository extends JdbcRepository<Employee> {
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
         preparedStatement.setString(1, employee.name());
         preparedStatement.setString(2, employee.password());
-        preparedStatement.setInt(3, employee.directManager().id());
+        if (employee.directManager() != null)
+            preparedStatement.setInt(3, employee.directManager().id());
+        else
+            preparedStatement.setInt(3, Integer.MIN_VALUE);
         preparedStatement.setInt(4, employee.branch().id());
         ResultSet resultSet = preparedStatement.executeQuery();
         if (resultSet.next()) {
@@ -76,7 +80,7 @@ public class EmployeeRepository extends JdbcRepository<Employee> {
                 " emp inner join " + BRANCH_TABLE_NAME + " br on " +
                 "br." + BRANCH_COLUMN_ID + " =  emp." + EMPLOYEE_COLUMN_BRANCH_ID +
                 " inner join " + EMPLOYEE_TABLE_NAME + " mgr on emp." + EMPLOYEE_COLUMN_MANAGER_ID + " = mgr." + EMPLOYEE_COLUMN_ID +
-                " where " + EMPLOYEE_COLUMN_NAME + " = ?";
+                " where emp." + EMPLOYEE_COLUMN_NAME + " = ?";
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
         preparedStatement.setString(1, name);
         ResultSet resultSet = preparedStatement.executeQuery();
