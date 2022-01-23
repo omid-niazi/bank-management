@@ -5,13 +5,13 @@ import java.sql.Date;
 public class Card {
     private int id;
     private String cardNumber;
-    private String cvv2;
+    private short cvv2;
     private Date expireDate;
-    private String password;
+    private String password="";
     private Account account;
-    private byte status;
+    private int status;
 
-    public Card(int id, String cardNumber, String cvv2, Date expireDate, String password, Account account, byte status) {
+    public Card(int id, String cardNumber, short cvv2, Date expireDate, String password, Account account, int status) {
         this.id = id;
         this.cardNumber = cardNumber;
         this.cvv2 = cvv2;
@@ -21,7 +21,7 @@ public class Card {
         this.status = status;
     }
 
-    public Card(String cardNumber, String cvv2, Date expireDate, Account account, byte status) {
+    public Card(String cardNumber, short cvv2, Date expireDate, Account account, int status) {
         this.cardNumber = cardNumber;
         this.cvv2 = cvv2;
         this.expireDate = expireDate;
@@ -42,7 +42,7 @@ public class Card {
         return cardNumber;
     }
 
-    public String cvv2() {
+    public short cvv2() {
         return cvv2;
     }
 
@@ -58,7 +58,7 @@ public class Card {
         return account;
     }
 
-    public byte status() {
+    public int status() {
         return status;
     }
 
