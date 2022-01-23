@@ -48,6 +48,9 @@ public class EmployeeService {
         return true;
     }
 
+    public void logout() {
+        loggedInEmployee = null;
+    }
 
     public void createEmployee(String name, String password) throws SQLException {
         createEmployee(name, password, loggedInEmployee, loggedInEmployee.branch());
@@ -69,7 +72,17 @@ public class EmployeeService {
         }
         Employee employee = new Employee(name, password, manager, branch);
         employeeRepository.add(employee);
-        print("employee record created", success);
+    }
+
+    public void createAccount(String accountNumber, long amount, String nationalCode) throws SQLException {
+        Customer customer = customerService.find(nationalCode);
+        accountService.createAccount(accountNumber, amount, customer);
+    }
+
+    public void createAccount(String accountNumber, long amount, String name, String nationalCode, String phone) throws CustomerExistsException, SQLException {
+        customerService.createCustomer(name, nationalCode, phone);
+        Customer customer = customerService.find(nationalCode);
+        createAccount(accountNumber, amount, customer.nationalCode());
     }
 
     public void createCard(String cardNumber, short cvv2, Date expireDate, String accountNumber) throws SQLException {
