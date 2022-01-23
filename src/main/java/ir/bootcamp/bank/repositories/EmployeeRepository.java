@@ -62,7 +62,7 @@ public class EmployeeRepository extends JdbcRepository<Employee> {
                 "mgr." + EMPLOYEE_COLUMN_PASSWORD + " as mgr_password from " + EMPLOYEE_TABLE_NAME +
                 " emp inner join " + BRANCH_TABLE_NAME + " br on " +
                 "br." + BRANCH_COLUMN_ID + " =  emp." + EMPLOYEE_COLUMN_BRANCH_ID +
-                " inner join " + EMPLOYEE_TABLE_NAME + " mgr on emp." + EMPLOYEE_COLUMN_MANAGER_ID + " = mgr." + EMPLOYEE_COLUMN_ID +
+                " left join " + EMPLOYEE_TABLE_NAME + " mgr on emp." + EMPLOYEE_COLUMN_MANAGER_ID + " = mgr." + EMPLOYEE_COLUMN_ID +
                 " where " + EMPLOYEE_COLUMN_ID + " = ?";
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
         preparedStatement.setInt(1, id);
@@ -79,7 +79,7 @@ public class EmployeeRepository extends JdbcRepository<Employee> {
                 "mgr." + EMPLOYEE_COLUMN_PASSWORD + " as mgr_password from " + EMPLOYEE_TABLE_NAME +
                 " emp inner join " + BRANCH_TABLE_NAME + " br on " +
                 "br." + BRANCH_COLUMN_ID + " =  emp." + EMPLOYEE_COLUMN_BRANCH_ID +
-                " inner join " + EMPLOYEE_TABLE_NAME + " mgr on emp." + EMPLOYEE_COLUMN_MANAGER_ID + " = mgr." + EMPLOYEE_COLUMN_ID +
+                " left join " + EMPLOYEE_TABLE_NAME + " mgr on emp." + EMPLOYEE_COLUMN_MANAGER_ID + " = mgr." + EMPLOYEE_COLUMN_ID +
                 " where emp." + EMPLOYEE_COLUMN_NAME + " = ?";
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
         preparedStatement.setString(1, name);
@@ -97,7 +97,7 @@ public class EmployeeRepository extends JdbcRepository<Employee> {
                 "mgr." + EMPLOYEE_COLUMN_PASSWORD + " as mgr_password from " + EMPLOYEE_TABLE_NAME +
                 " emp inner join " + BRANCH_TABLE_NAME + " br on " +
                 "br." + BRANCH_COLUMN_ID + " =  emp." + EMPLOYEE_COLUMN_BRANCH_ID +
-                " inner join " + EMPLOYEE_TABLE_NAME + " mgr on emp." + EMPLOYEE_COLUMN_MANAGER_ID + " = mgr." + EMPLOYEE_COLUMN_ID;
+                " left join " + EMPLOYEE_TABLE_NAME + " mgr on emp." + EMPLOYEE_COLUMN_MANAGER_ID + " = mgr." + EMPLOYEE_COLUMN_ID;
         ResultSet resultSet = connection.createStatement().executeQuery(sql);
         return mapToList(resultSet);
     }
