@@ -29,4 +29,8 @@ public class BranchService {
     public Branch find(int branchId) throws SQLException {
         return branchRepository.find(branchId);
     }
+
+    public Branch find(String branchName) throws SQLException {
+        return branchRepository.find(branchName);
+    }
 }
