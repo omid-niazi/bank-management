@@ -23,8 +23,8 @@ public class AccountRepository extends JdbcRepository<Account> {
         String query = "create table if not exists " + ACCOUNT_TABLE_NAME + "" +
                 "(" +
                 "    " + ACCOUNT_COLUMN_ID + "       serial primary key," +
-                "    " + ACCOUNT_COLUMN_NUMBER + "     varchar(255) not null ," +
-                "    " + ACCOUNT_COLUMN_AMOUNT + " bigint unique not null ," +
+                "    " + ACCOUNT_COLUMN_NUMBER + "     varchar(255) unique not null ," +
+                "    " + ACCOUNT_COLUMN_AMOUNT + " bigint  not null ," +
                 "    " + ACCOUNT_COLUMN_CUSTOMER_ID + " int not null" +
                 "" +
                 ");";
