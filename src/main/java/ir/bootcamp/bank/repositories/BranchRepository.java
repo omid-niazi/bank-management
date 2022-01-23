@@ -37,7 +37,7 @@ public class BranchRepository extends JdbcRepository<Branch> {
         preparedStatement.setString(2, branch.address());
         ResultSet resultSet = preparedStatement.executeQuery();
         if (resultSet.next()) {
-            return resultSet.getInt(CUSTOMER_COLUMN_ID);
+            return resultSet.getInt(BRANCH_COLUMN_ID);
         }
         return -1;
     }
