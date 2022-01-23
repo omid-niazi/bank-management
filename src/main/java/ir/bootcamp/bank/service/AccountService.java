@@ -27,7 +27,7 @@ public class AccountService {
         accountRepository.add(new Account(accountNumber, amount, customer));
     }
 
-    public void deposit(String accountNumber, long amount) throws SQLException {
+    void deposit(String accountNumber, long amount) throws SQLException {
         Account account = accountRepository.findByAccountNumber(accountNumber);
         if (account == null) {
             print("account number is wrong", error);
@@ -66,5 +66,13 @@ public class AccountService {
 
     List<Account> findCustomerAccounts(Customer customer) throws SQLException {
         return accountRepository.findByCustomerId(customer.id());
+    }
+
+    Account find(String accountNumber) throws SQLException {
+        Account account = accountRepository.findByAccountNumber(accountNumber);
+        if (account == null) {
+            throw new AccountNotFoundException("there is not account with this account number");
+        }
+        return account;
     }
 }
