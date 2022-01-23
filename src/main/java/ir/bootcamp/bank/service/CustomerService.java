@@ -64,4 +64,20 @@ public class CustomerService {
     public Customer find(int customerId) throws SQLException {
         return customerRepository.find(customerId);
     }
+
+    public Customer find(String nationalCode) throws SQLException, CustomerNotFoundException {
+        Customer customer = customerRepository.find(nationalCode);
+        if (customer == null) {
+            throw new CustomerNotFoundException("there is not customer with this national code");
+        }
+        return customer;
+    }
+
+    void createCustomer(String name, String nationalCode, String phone) throws CustomerExistsException, SQLException {
+        if (customerRepository.find(nationalCode) != null) {
+            throw new CustomerExistsException("a customer with this national code already exists");
+        }
+        Customer customer = new Customer(name, nationalCode, phone);
+        customerRepository.add(customer);
+    }
 }

@@ -54,6 +54,14 @@ public class CustomerRepository extends JdbcRepository<Customer> {
         return mapTo(resultSet);
     }
 
+    public Customer find(String nationalCode) throws SQLException {
+        String sql = "select * from " + CUSTOMER_TABLE_NAME + " where " + CUSTOMER_COLUMN_NATIONAL_CODE+ " = ?";
+        PreparedStatement preparedStatement = connection.prepareStatement(sql);
+        preparedStatement.setString(1, nationalCode);
+        ResultSet resultSet = preparedStatement.executeQuery();
+        return mapTo(resultSet);
+    }
+
     @Override
     public List<Customer> findAll() throws SQLException {
         String sql = "select * from " + CUSTOMER_TABLE_NAME + "";
