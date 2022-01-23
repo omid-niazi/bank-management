@@ -21,7 +21,7 @@ public class CardRepository extends JdbcRepository<Card> {
 
     @Override
     protected void createTable() throws SQLException {
-        String query = "create table if not exists " + CARD_COLUMN_NUMBER + "" +
+        String query = "create table if not exists " + CARD_TABLE_NAME + "" +
                 "(" +
                 "    " + CARD_COLUMN_ID + "       serial primary key," +
                 "    " + CARD_COLUMN_NUMBER + "     char(16) not null ," +
@@ -29,8 +29,8 @@ public class CardRepository extends JdbcRepository<Card> {
                 "    " + CARD_COLUMN_PASSWORD + " varchar(255) not null ," +
                 "    " + CARD_COLUMN_EXPIRE_DATE + " date not null ," +
                 "    " + CARD_COLUMN_ACCOUNT_ID + " int not null ," +
-                "    " + CARD_COLUMN_STATUS + " bit not null" +
-                "" +
+                "    " + CARD_COLUMN_STATUS + " int not null, " +
+                "foreign key (" + CARD_COLUMN_ACCOUNT_ID +") references " + ACCOUNT_TABLE_NAME + "("+ACCOUNT_COLUMN_ID+") " +
                 ");";
         connection.createStatement().execute(query);
     }
@@ -40,14 +40,14 @@ public class CardRepository extends JdbcRepository<Card> {
         String sql = "insert into " + CARD_TABLE_NAME + " values (DEFAULT, ?, ?, ?,?,?,?) returning " + CARD_COLUMN_ID + "";
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
         preparedStatement.setString(1, card.cardNumber());
-        preparedStatement.setString(2, card.cvv2());
+        preparedStatement.setShort(2, card.cvv2());
         preparedStatement.setString(3, card.password());
         preparedStatement.setDate(4, card.expireDate());
-        preparedStatement.setInt(6, card.account().id());
-        preparedStatement.setShort(6, card.status());
+        preparedStatement.setInt(5, card.account().id());
+        preparedStatement.setInt(6, card.status());
         ResultSet resultSet = preparedStatement.executeQuery();
         if (resultSet.next()) {
-            return resultSet.getInt(ACCOUNT_COLUMN_ID);
+            return resultSet.getInt(CARD_COLUMN_ID);
         }
         return -1;
     }
@@ -103,11 +103,12 @@ public class CardRepository extends JdbcRepository<Card> {
                 "where " + CARD_COLUMN_ID + " = ?";
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
         preparedStatement.setString(1, card.cardNumber());
-        preparedStatement.setString(2, card.cvv2());
+        preparedStatement.setShort(2, card.cvv2());
         preparedStatement.setString(3, card.password());
         preparedStatement.setDate(4, card.expireDate());
-        preparedStatement.setInt(4, card.account().id());
-        preparedStatement.setShort(4, card.status());
+        preparedStatement.setInt(5, card.account().id());
+        preparedStatement.setInt(6, card.status());
+        preparedStatement.setInt(7, card.id());
         return preparedStatement.executeUpdate();
     }
 
@@ -125,7 +126,7 @@ public class CardRepository extends JdbcRepository<Card> {
             return null;
         return new Card(resultSet.getInt(CARD_COLUMN_ID),
                 resultSet.getString(CARD_COLUMN_NUMBER),
-                resultSet.getString(CARD_COLUMN_CVV2),
+                resultSet.getShort(CARD_COLUMN_CVV2),
                 resultSet.getDate(CARD_COLUMN_EXPIRE_DATE),
                 resultSet.getString(CARD_COLUMN_PASSWORD),
                 new Account(
@@ -148,7 +149,7 @@ public class CardRepository extends JdbcRepository<Card> {
         while (resultSet.next()) {
             result.add(new Card(resultSet.getInt(CARD_COLUMN_ID),
                     resultSet.getString(CARD_COLUMN_NUMBER),
-                    resultSet.getString(CARD_COLUMN_CVV2),
+                    resultSet.getShort(CARD_COLUMN_CVV2),
                     resultSet.getDate(CARD_COLUMN_EXPIRE_DATE),
                     resultSet.getString(CARD_COLUMN_PASSWORD),
                     new Account(
