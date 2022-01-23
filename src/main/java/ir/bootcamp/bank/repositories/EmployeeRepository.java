@@ -24,8 +24,8 @@ public class EmployeeRepository extends JdbcRepository<Employee> {
     protected void createTable() throws SQLException {
         String query = "create table if not exists " + EMPLOYEE_TABLE_NAME + "" + "("
                 + "    " + EMPLOYEE_COLUMN_ID + "       serial primary key,"
-                + "    " + EMPLOYEE_COLUMN_NAME + "     varchar(255) not null ,"
-                + "    " + EMPLOYEE_COLUMN_PASSWORD + " varchar(255) unique not null ,"
+                + "    " + EMPLOYEE_COLUMN_NAME + "     varchar(255) not null unique ,"
+                + "    " + EMPLOYEE_COLUMN_PASSWORD + " varchar(255) not null ,"
                 + "    " + EMPLOYEE_COLUMN_MANAGER_ID + " int ,"
                 + "    " + EMPLOYEE_COLUMN_BRANCH_ID + " int "
                 + ");";
