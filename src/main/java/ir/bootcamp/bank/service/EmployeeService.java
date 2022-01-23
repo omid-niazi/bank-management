@@ -9,20 +9,25 @@ import ir.bootcamp.bank.repositories.EmployeeRepository;
 import static ir.bootcamp.bank.util.ConsoleUtil.*;
 import static ir.bootcamp.bank.util.ConsoleMessageType.*;
 
+import java.sql.Date;
 import java.sql.SQLException;
+import java.util.List;
 
 public class EmployeeService {
     private EmployeeRepository employeeRepository;
     private BranchService branchService;
     private CustomerService customerService;
     private AccountService accountService;
+    private CardService cardService;
     private Employee loggedInEmployee;
 
-    public EmployeeService(EmployeeRepository employeeRepository, BranchService branchService, CustomerService customerService, AccountService accountService) {
+
+    public EmployeeService(EmployeeRepository employeeRepository, BranchService branchService, CustomerService customerService, AccountService accountService, CardService cardService) {
         this.employeeRepository = employeeRepository;
         this.branchService = branchService;
         this.customerService = customerService;
         this.accountService = accountService;
+        this.cardService = cardService;
     }
 
     public boolean login(String name, String password) throws SQLException {
@@ -67,7 +72,12 @@ public class EmployeeService {
         print("employee record created", success);
     }
 
-    public void showCustomerAccounts(int customerId) throws SQLException {
+    public void createCard(String cardNumber, short cvv2, Date expireDate, String accountNumber) throws SQLException {
+        Account account = accountService.find(accountNumber);
+        cardService.createCard(cardNumber, cvv2, expireDate, account);
+    }
+
+    public List<Account> findCustomerAccounts(int customerId) throws SQLException {
         Customer customer = customerService.find(customerId);
         if (customer == null) {
             print("customer id is wrong", error);
