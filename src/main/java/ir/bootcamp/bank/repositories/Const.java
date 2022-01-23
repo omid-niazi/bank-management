@@ -45,6 +45,4 @@ public class Const {
     public static final String TRANSACTION_COLUMN_TO_CARD_ID = "transaction_column_to_card";
     public static final String TRANSACTION_COLUMN_AMOUNT= "transaction_column_amount";
     public static final String TRANSACTION_COLUMN_IS_OUT_GOING = "transaction_column_is_out_going";
-    public static final String TRANSACTION_COLUMN_TRANSACTION_TYPE = "transaction_column_transaction_type";
-
 }
