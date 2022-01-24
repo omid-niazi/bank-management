@@ -10,7 +10,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static ir.bootcamp.bank.repositories.Const.*;
+import static ir.bootcamp.bank.util.DatabaseConstants.*;
 
 public class AccountRepository extends JdbcRepository<Account> {
 

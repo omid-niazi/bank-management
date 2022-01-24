@@ -6,7 +6,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import static ir.bootcamp.bank.repositories.Const.*;
+import static ir.bootcamp.bank.util.DatabaseConstants.*;
 
 public class TransactionRepository extends JdbcRepository<Transaction> {
 

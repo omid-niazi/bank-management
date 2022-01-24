@@ -1,6 +1,5 @@
 package ir.bootcamp.bank.repositories;
 
-import com.sun.jdi.IntegerValue;
 import ir.bootcamp.bank.model.Branch;
 import ir.bootcamp.bank.model.Employee;
 
@@ -11,7 +10,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static ir.bootcamp.bank.repositories.Const.*;
+import static ir.bootcamp.bank.util.DatabaseConstants.*;
 
 public class EmployeeRepository extends JdbcRepository<Employee> {
 
