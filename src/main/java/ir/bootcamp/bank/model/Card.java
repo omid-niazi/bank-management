@@ -7,17 +7,19 @@ public class Card {
     private String cardNumber;
     private short cvv2;
     private Date expireDate;
-    private String password="";
+    private String password = "";
     private Account account;
+    private int failedAttempt = 0;
     private int status;
 
-    public Card(int id, String cardNumber, short cvv2, Date expireDate, String password, Account account, int status) {
+    public Card(int id, String cardNumber, short cvv2, Date expireDate, String password, Account account, int failedAttempt, int status) {
         this.id = id;
         this.cardNumber = cardNumber;
         this.cvv2 = cvv2;
         this.expireDate = expireDate;
         this.password = password;
         this.account = account;
+        this.failedAttempt = failedAttempt;
         this.status = status;
     }
 
@@ -62,7 +64,19 @@ public class Card {
         return status;
     }
 
-    public void setPassword(String password){
+    public void setStatus(int status) {
+        this.status = status;
+    }
+
+    public int failedAttempt() {
+        return failedAttempt;
+    }
+
+    public void setFailedAttempt(int f) {
+        this.failedAttempt = f;
+    }
+
+    public void setPassword(String password) {
         this.password = password;
     }
 }

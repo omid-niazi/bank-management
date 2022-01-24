@@ -29,22 +29,24 @@ public class CardRepository extends JdbcRepository<Card> {
                 "    " + CARD_COLUMN_PASSWORD + " varchar(255) not null ," +
                 "    " + CARD_COLUMN_EXPIRE_DATE + " date not null ," +
                 "    " + CARD_COLUMN_ACCOUNT_ID + " int not null ," +
+                "    " + CARD_COLUMN_FAILED_ATTEMPT + " int not null ," +
                 "    " + CARD_COLUMN_STATUS + " int not null, " +
-                "foreign key (" + CARD_COLUMN_ACCOUNT_ID +") references " + ACCOUNT_TABLE_NAME + "("+ACCOUNT_COLUMN_ID+") " +
+                "foreign key (" + CARD_COLUMN_ACCOUNT_ID + ") references " + ACCOUNT_TABLE_NAME + "(" + ACCOUNT_COLUMN_ID + ") " +
                 ");";
         connection.createStatement().execute(query);
     }
 
     @Override
     public int add(Card card) throws SQLException {
-        String sql = "insert into " + CARD_TABLE_NAME + " values (DEFAULT, ?, ?, ?,?,?,?) returning " + CARD_COLUMN_ID + "";
+        String sql = "insert into " + CARD_TABLE_NAME + " values (DEFAULT, ?, ?, ?,?,?,?,?) returning " + CARD_COLUMN_ID + "";
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
         preparedStatement.setString(1, card.cardNumber());
         preparedStatement.setShort(2, card.cvv2());
         preparedStatement.setString(3, card.password());
         preparedStatement.setDate(4, card.expireDate());
         preparedStatement.setInt(5, card.account().id());
-        preparedStatement.setInt(6, card.status());
+        preparedStatement.setInt(6, card.failedAttempt());
+        preparedStatement.setInt(7, card.status());
         ResultSet resultSet = preparedStatement.executeQuery();
         if (resultSet.next()) {
             return resultSet.getInt(CARD_COLUMN_ID);
@@ -99,6 +101,7 @@ public class CardRepository extends JdbcRepository<Card> {
                 CARD_COLUMN_PASSWORD + " = ?, " +
                 CARD_COLUMN_EXPIRE_DATE + " = ?, " +
                 CARD_COLUMN_ACCOUNT_ID + " = ?, " +
+                CARD_COLUMN_FAILED_ATTEMPT + " = ?, " +
                 CARD_COLUMN_STATUS + " = ? " +
                 "where " + CARD_COLUMN_ID + " = ?";
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
@@ -107,8 +110,9 @@ public class CardRepository extends JdbcRepository<Card> {
         preparedStatement.setString(3, card.password());
         preparedStatement.setDate(4, card.expireDate());
         preparedStatement.setInt(5, card.account().id());
-        preparedStatement.setInt(6, card.status());
-        preparedStatement.setInt(7, card.id());
+        preparedStatement.setInt(6, card.failedAttempt());
+        preparedStatement.setInt(7, card.status());
+        preparedStatement.setInt(8, card.id());
         return preparedStatement.executeUpdate();
     }
 
@@ -138,8 +142,9 @@ public class CardRepository extends JdbcRepository<Card> {
                                 resultSet.getString(CUSTOMER_COLUMN_NAME),
                                 resultSet.getString(CUSTOMER_COLUMN_NATIONAL_CODE),
                                 resultSet.getString(CUSTOMER_COLUMN_PHONE)
-                        ))
-                , resultSet.getByte(CARD_COLUMN_STATUS)
+                        )),
+                resultSet.getInt(CARD_COLUMN_FAILED_ATTEMPT),
+                resultSet.getByte(CARD_COLUMN_STATUS)
         );
     }
 
@@ -161,8 +166,9 @@ public class CardRepository extends JdbcRepository<Card> {
                                     resultSet.getString(CUSTOMER_COLUMN_NAME),
                                     resultSet.getString(CUSTOMER_COLUMN_NATIONAL_CODE),
                                     resultSet.getString(CUSTOMER_COLUMN_PHONE)
-                            ))
-                    , resultSet.getByte(CARD_COLUMN_STATUS)
+                            )),
+                    resultSet.getInt(CARD_COLUMN_FAILED_ATTEMPT),
+                    resultSet.getByte(CARD_COLUMN_STATUS)
             ));
         }
         return result;

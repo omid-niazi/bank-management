@@ -32,6 +32,7 @@ public class Const {
     public static final String CARD_COLUMN_EXPIRE_DATE = "card_expire_date";
     public static final String CARD_COLUMN_PASSWORD = "card_password";
     public static final String CARD_COLUMN_ACCOUNT_ID = "card_account_id";
+    public static final String CARD_COLUMN_FAILED_ATTEMPT = "card_failed_attempt";
     public static final String CARD_COLUMN_STATUS = "card_status";
 
     public static final String BRANCH_MANAGER_TABLE_NAME = "branch_manager";

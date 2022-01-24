@@ -34,9 +34,13 @@ public class CustomerService {
         }
     }
 
-    public void transfer(String fromCardNumber, String password, short cvv2, Date expireDate, long amount, String toCardNumber) throws SQLException, AccountNotEnoughBalanceException, AccountNotFoundException, CardAuthenticationException, CardNotFoundException {
+    public void transfer(String fromCardNumber, String password, short cvv2, Date expireDate, long amount, String toCardNumber) throws SQLException, AccountNotEnoughBalanceException, AccountNotFoundException, CardAuthenticationException, CardNotFoundException, CardDisabledException {
         Card fromCard = cardService.find(fromCardNumber);
+        if (fromCard.status() != 1) {
+            throw new CardDisabledException("you enter wrong password more than 2 time, your card is disabled");
+        }
         if (!fromCard.password().equals(password)) {
+            cardService.attemptFailed(fromCard);
             throw new CardAuthenticationException("authentication failed your password is wrong");
         }
         if (fromCard.cvv2() != cvv2) {
@@ -46,6 +50,7 @@ public class CustomerService {
             throw new CardAuthenticationException("authentication failed expire date is wrong");
         }
         Card toCard = cardService.find(toCardNumber);
+        cardService.enableCard(fromCard);
         accountService.withdraw(fromCard.account().accountNumber(), amount + 600);
         accountService.deposit(toCard.account().accountNumber(), amount);
         Transaction transaction = new Transaction(fromCard, toCard, amount, true);

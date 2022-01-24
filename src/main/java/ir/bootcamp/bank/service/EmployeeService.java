@@ -1,10 +1,7 @@
 package ir.bootcamp.bank.service;
 
 import ir.bootcamp.bank.exceptions.*;
-import ir.bootcamp.bank.model.Account;
-import ir.bootcamp.bank.model.Branch;
-import ir.bootcamp.bank.model.Customer;
-import ir.bootcamp.bank.model.Employee;
+import ir.bootcamp.bank.model.*;
 import ir.bootcamp.bank.repositories.EmployeeRepository;
 
 
@@ -108,7 +105,6 @@ public class EmployeeService {
         return employee;
     }
 
-
     public void removeAccount(String accountNumber) throws SQLException, AccountNotFoundException {
         accountService.removeAccount(accountNumber);
     }
@@ -123,5 +119,14 @@ public class EmployeeService {
 
     public void removeCard(String cardNumber) throws SQLException, CardNotFoundException {
         cardService.remove(cardNumber);
+    }
+
+    public void changeCardStatus(String cardNumber, int status) throws SQLException, CardNotFoundException {
+        Card card = cardService.find(cardNumber);
+        if (status == 0) {
+            cardService.disableCard(card);
+        } else if (status == 1) {
+            cardService.enableCard(card);
+        }
     }
 }
