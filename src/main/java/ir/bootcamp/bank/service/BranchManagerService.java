@@ -21,11 +21,8 @@ public class BranchManagerService {
         this.employeeService = employeeService;
     }
 
-    public void changeBranchManager(int branchId, int managerId) throws SQLException {
-        Branch branch = branchService.find(branchId);
-        if (branch == null) {
-            throw new BranchNotFoundException("branch id is wrong");
-        }
+    public void changeBranchManager(String branchName, String managerName) throws SQLException, EmployeeNotFoundException, IllegalBranchManagerException, BranchNotFoundException {
+        Branch branch = branchService.find(branchName);
 
         Employee employee = employeeService.find(managerId);
         if (employee == null) {

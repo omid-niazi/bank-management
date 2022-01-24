@@ -29,7 +29,7 @@ public class EmployeeService {
         this.cardService = cardService;
     }
 
-    public void login(String name, String password) throws SQLException {
+    public void login(String name, String password) throws SQLException, EmployeeNotFoundException, EmployeeInvalidPasswordException {
         loggedInEmployee = null;
         Employee employee = employeeRepository.findByName(name);
         if (employee == null) {
@@ -47,11 +47,11 @@ public class EmployeeService {
         loggedInEmployee = null;
     }
 
-    public void createEmployee(String name, String password) throws SQLException {
+    public void createEmployee(String name, String password) throws SQLException, EmployeeExistsException {
         createEmployee(name, password, loggedInEmployee, loggedInEmployee.branch());
     }
 
-    public void createEmployee(String name, String password, String branchName) throws SQLException {
+    public void createEmployee(String name, String password, String branchName) throws SQLException, BranchNotFoundException, EmployeeExistsException {
         Branch branch = branchService.find(branchName);
         if (branch == null) {
             throw new BranchNotFoundException("there is no branch with this name");
@@ -59,7 +59,7 @@ public class EmployeeService {
         createEmployee(name, password, null, branch);
     }
 
-    public void createEmployee(String name, String password, Employee manager, Branch branch) throws SQLException {
+    public void createEmployee(String name, String password, Employee manager, Branch branch) throws SQLException, EmployeeExistsException {
         if (employeeRepository.findByName(name) != null) {
             throw new EmployeeExistsException("this username is already taken");
         }
@@ -67,33 +67,45 @@ public class EmployeeService {
         employeeRepository.add(employee);
     }
 
-    public void createAccount(String accountNumber, long amount, String nationalCode) throws SQLException {
+    public void createAccount(String accountNumber, long amount, String nationalCode) throws SQLException, CustomerNotFoundException, AccountExistsException {
         Customer customer = customerService.find(nationalCode);
         accountService.createAccount(accountNumber, amount, customer);
     }
 
-    public void createAccount(String accountNumber, long amount, String name, String nationalCode, String phone) throws CustomerExistsException, SQLException {
+    public void createAccount(String accountNumber, long amount, String name, String nationalCode, String phone) throws CustomerExistsException, SQLException, CustomerNotFoundException, AccountExistsException {
         customerService.createCustomer(name, nationalCode, phone);
         Customer customer = customerService.find(nationalCode);
         createAccount(accountNumber, amount, customer.nationalCode());
     }
 
-    public void createCard(String cardNumber, short cvv2, Date expireDate, String accountNumber) throws SQLException {
+    public void createCard(String cardNumber, short cvv2, Date expireDate, String accountNumber) throws SQLException, AccountNotFoundException, CardExistsException {
         Account account = accountService.find(accountNumber);
         cardService.createCard(cardNumber, cvv2, expireDate, account);
     }
 
-    public List<Account> findCustomerAccounts(int customerId) throws SQLException {
-        Customer customer = customerService.find(customerId);
+    public List<Account> findCustomerAccounts(String nationalCode) throws SQLException, CustomerNotFoundException {
+        Customer customer = customerService.find(nationalCode);
         if (customer == null) {
-            throw new CustomerNotFoundException("there is no customer with this id");
+            throw new CustomerNotFoundException("there is no customer with this national code");
         }
 
         return accountService.findCustomerAccounts(customer);
     }
 
-    public Employee find(int id) throws SQLException {
-        return employeeRepository.find(id);
+    public Employee find(int id) throws SQLException, EmployeeNotFoundException {
+        Employee employee = employeeRepository.find(id);
+        if (employee == null) {
+            throw new EmployeeNotFoundException("there is no employee with this id");
+        }
+        return employee;
+    }
+
+    public Employee find(String username) throws SQLException, EmployeeNotFoundException {
+        Employee employee = employeeRepository.findByName(username);
+        if (employee == null) {
+            throw new EmployeeNotFoundException("there is no employee with this username");
+        }
+        return employee;
     }
 
 

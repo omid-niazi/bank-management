@@ -22,19 +22,19 @@ public class CustomerService {
         this.transactionService = transactionService;
     }
 
-    public boolean cardsAreValid(String fromCard, String toCard) throws SQLException {
-        if (fromCard.length() != 16 || toCard.length() != 16) {
+    public void cardValidation(String fromCardNumber, String toCardNumber, long amount) throws SQLException, InvalidCardNumberException, CardNotFoundException, AccountNotEnoughBalanceException {
+        if (fromCardNumber.length() != 16 || toCardNumber.length() != 16) {
             throw new InvalidCardNumberException("card number must be 16 character");
         }
 
-        if (cardService.find(fromCard) == null || cardService.find(toCard) == null) {
-            throw new CardNotFoundException("make sure enterd card numbers are correct");
+        Card fromCard = cardService.find(fromCardNumber);
+        Card toCard = cardService.find(toCardNumber);
+        if (fromCard.account().amount() < amount + 600) {
+            throw new AccountNotEnoughBalanceException("your account balance is not enough");
         }
-
-        return true;
     }
 
-    public void transfer(String fromCardNumber, String password, short cvv2, Date expireDate, long amount, String toCardNumber) throws SQLException {
+    public void transfer(String fromCardNumber, String password, short cvv2, Date expireDate, long amount, String toCardNumber) throws SQLException, AccountNotEnoughBalanceException, AccountNotFoundException, CardAuthenticationException, CardNotFoundException {
         Card fromCard = cardService.find(fromCardNumber);
         if (!fromCard.password().equals(password)) {
             throw new CardAuthenticationException("authentication failed your password is wrong");
@@ -45,17 +45,14 @@ public class CustomerService {
         if (!fromCard.expireDate().toLocalDate().isEqual(expireDate.toLocalDate())) {
             throw new CardAuthenticationException("authentication failed expire date is wrong");
         }
-        if (fromCard.account().amount() < amount) {
-            throw new AccountNotEnoughBalanceException("your account balance is not enough");
-        }
         Card toCard = cardService.find(toCardNumber);
-        accountService.withdraw(fromCard.account().accountNumber(), amount);
+        accountService.withdraw(fromCard.account().accountNumber(), amount + 600);
         accountService.deposit(toCard.account().accountNumber(), amount);
         Transaction transaction = new Transaction(fromCard, toCard, amount, true);
         transactionService.makeTransaction(transaction);
     }
 
-    public void changePassword(String cardNumber, String oldPassword, String newPassword) throws SQLException {
+    public void changePassword(String cardNumber, String oldPassword, String newPassword) throws SQLException, CardNotFoundException, InvalidCardPasswordException {
         cardService.changePassword(cardNumber, oldPassword, newPassword);
     }
 

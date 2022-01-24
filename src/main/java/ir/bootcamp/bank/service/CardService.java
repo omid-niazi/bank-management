@@ -17,7 +17,7 @@ public class CardService {
         this.cardRepository = cardRepository;
     }
 
-    public Card find(String cardNumber) throws SQLException {
+    public Card find(String cardNumber) throws SQLException, CardNotFoundException {
         Card card = cardRepository.find(cardNumber);
         if (card == null) {
             throw new CardNotFoundException("there is no card with this number");
@@ -25,7 +25,7 @@ public class CardService {
         return card;
     }
 
-    void createCard(String cardNumber, short cvv2, Date expireDate, Account account) throws SQLException {
+    void createCard(String cardNumber, short cvv2, Date expireDate, Account account) throws SQLException, CardExistsException {
         if (cardRepository.find(cardNumber) != null) {
             throw new CardExistsException("a cad with this number already exists");
         }
@@ -33,7 +33,7 @@ public class CardService {
         cardRepository.add(card);
     }
 
-    void changePassword(String cardNumber, String oldPassword, String newPassword) throws SQLException {
+    void changePassword(String cardNumber, String oldPassword, String newPassword) throws SQLException, CardNotFoundException, InvalidCardPasswordException {
         Card card = cardRepository.find(cardNumber);
         if (card == null) {
             throw new CardNotFoundException("there is no card with this card number");

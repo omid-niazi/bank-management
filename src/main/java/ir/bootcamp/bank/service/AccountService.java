@@ -17,7 +17,7 @@ public class AccountService {
         this.accountRepository = accountRepository;
     }
 
-    void createAccount(String accountNumber, long amount, Customer customer) throws SQLException {
+    void createAccount(String accountNumber, long amount, Customer customer) throws SQLException, AccountExistsException {
         Account account = accountRepository.findByAccountNumber(accountNumber);
         if (account != null) {
             throw new AccountExistsException("this account number is already taken");
@@ -26,7 +26,7 @@ public class AccountService {
         accountRepository.add(new Account(accountNumber, amount, customer));
     }
 
-    void deposit(String accountNumber, long amount) throws SQLException {
+    void deposit(String accountNumber, long amount) throws SQLException, AccountNotFoundException {
         Account account = accountRepository.findByAccountNumber(accountNumber);
         if (account == null) {
             throw new AccountNotFoundException("there is not account with this account number");
@@ -41,7 +41,7 @@ public class AccountService {
         accountRepository.update(updatedAccount);
     }
 
-    void withdraw(String accountNumber, long amount) throws SQLException {
+    void withdraw(String accountNumber, long amount) throws SQLException, AccountNotFoundException, AccountNotEnoughBalanceException {
         Account account = accountRepository.findByAccountNumber(accountNumber);
         if (account == null) {
             throw new AccountNotFoundException("there is not account with this account number");
@@ -64,7 +64,7 @@ public class AccountService {
         return accountRepository.findByCustomerId(customer.id());
     }
 
-    Account find(String accountNumber) throws SQLException {
+    Account find(String accountNumber) throws SQLException, AccountNotFoundException {
         Account account = accountRepository.findByAccountNumber(accountNumber);
         if (account == null) {
             throw new AccountNotFoundException("there is not account with this account number");
