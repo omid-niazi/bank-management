@@ -71,4 +71,12 @@ public class AccountService {
         }
         return account;
     }
+
+    void removeAccount(String accountNumber) throws SQLException, AccountNotFoundException {
+        Account account = accountRepository.findByAccountNumber(accountNumber);
+        if (account == null) {
+            throw new AccountNotFoundException("there is not account with this account number");
+        }
+        accountRepository.delete(account.id());
+    }
 }

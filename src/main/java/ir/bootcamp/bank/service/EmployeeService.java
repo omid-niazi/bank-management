@@ -109,4 +109,19 @@ public class EmployeeService {
     }
 
 
+    public void removeAccount(String accountNumber) throws SQLException, AccountNotFoundException {
+        accountService.removeAccount(accountNumber);
+    }
+
+    public void deposit(String accountNumber, long amount) throws SQLException, AccountNotFoundException {
+        accountService.deposit(accountNumber, amount);
+    }
+
+    public void withdraw(String accountNumber, long amount) throws SQLException, AccountNotEnoughBalanceException, AccountNotFoundException {
+        accountService.withdraw(accountNumber, amount);
+    }
+
+    public void removeCard(String cardNumber) throws SQLException, CardNotFoundException {
+        cardService.remove(cardNumber);
+    }
 }

@@ -53,4 +53,12 @@ public class CardService {
         cardRepository.update(card);
         return;
     }
+
+     void remove(String cardNumber) throws CardNotFoundException, SQLException {
+        Card card = cardRepository.find(cardNumber);
+        if (card == null) {
+            throw new CardNotFoundException("there is no card with this card number");
+        }
+        cardRepository.delete(card.id());
+    }
 }
