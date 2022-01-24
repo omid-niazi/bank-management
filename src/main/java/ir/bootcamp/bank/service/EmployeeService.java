@@ -7,6 +7,7 @@ import ir.bootcamp.bank.repositories.EmployeeRepository;
 
 import java.sql.Date;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.List;
 
 public class EmployeeService {
@@ -15,15 +16,17 @@ public class EmployeeService {
     private CustomerService customerService;
     private AccountService accountService;
     private CardService cardService;
+    private TransactionService transactionService;
     private Employee loggedInEmployee;
 
 
-    public EmployeeService(EmployeeRepository employeeRepository, BranchService branchService, CustomerService customerService, AccountService accountService, CardService cardService) {
+    public EmployeeService(EmployeeRepository employeeRepository, BranchService branchService, CustomerService customerService, AccountService accountService, CardService cardService, TransactionService transactionService) {
         this.employeeRepository = employeeRepository;
         this.branchService = branchService;
         this.customerService = customerService;
         this.accountService = accountService;
         this.cardService = cardService;
+        this.transactionService = transactionService;
     }
 
     public void login(String name, String password) throws SQLException, EmployeeNotFoundException, EmployeeInvalidPasswordException {
@@ -129,4 +132,9 @@ public class EmployeeService {
             cardService.enableCard(card);
         }
     }
+
+    public List<Transaction> findTransactions(String cardNumber, Timestamp timestamp) throws SQLException {
+        return transactionService.find(cardNumber, timestamp);
+    }
+
 }

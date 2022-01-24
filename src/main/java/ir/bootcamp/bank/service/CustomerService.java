@@ -8,6 +8,8 @@ import ir.bootcamp.bank.repositories.CustomerRepository;
 
 import java.sql.Date;
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.time.Instant;
 
 public class CustomerService {
     private CustomerRepository customerRepository;
@@ -53,7 +55,7 @@ public class CustomerService {
         cardService.enableCard(fromCard);
         accountService.withdraw(fromCard.account().accountNumber(), amount + 600);
         accountService.deposit(toCard.account().accountNumber(), amount);
-        Transaction transaction = new Transaction(fromCard, toCard, amount, true);
+        Transaction transaction = new Transaction(fromCard, toCard, amount, true, new Timestamp(System.currentTimeMillis()));
         transactionService.makeTransaction(transaction);
     }
 
