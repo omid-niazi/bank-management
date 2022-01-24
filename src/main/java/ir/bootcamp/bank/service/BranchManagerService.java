@@ -24,16 +24,13 @@ public class BranchManagerService {
     public void changeBranchManager(String branchName, String managerName) throws SQLException, EmployeeNotFoundException, IllegalBranchManagerException, BranchNotFoundException {
         Branch branch = branchService.find(branchName);
 
-        Employee employee = employeeService.find(managerId);
-        if (employee == null) {
-            throw new EmployeeNotFoundException("manager id is wrong");
-        }
+        Employee employee = employeeService.find(managerName);
 
-        if (employee.branch().id() != branchId) {
+        if (!employee.branch().name().equals(branchName)) {
             throw new IllegalBranchManagerException("this employee doesn't work at this branch");
         }
 
-        BranchManager branchManager = branchManagerRepository.findByBranchId(branchId);
+        BranchManager branchManager = branchManagerRepository.findByBranchName(branchName);
         if (branchManager != null) {
             branchManagerRepository.update(new BranchManager(
                     branchManager.id(),

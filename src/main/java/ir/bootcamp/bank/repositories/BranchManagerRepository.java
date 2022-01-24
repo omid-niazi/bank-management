@@ -36,7 +36,7 @@ public class BranchManagerRepository extends JdbcRepository<BranchManager> {
         preparedStatement.setInt(2, branchManager.manager().id());
         ResultSet resultSet = preparedStatement.executeQuery();
         if (resultSet.next()) {
-            return resultSet.getInt(ACCOUNT_COLUMN_ID);
+            return resultSet.getInt(BRANCH_MANAGER_COLUMN_ID);
         }
         return -1;
     }
@@ -64,6 +64,19 @@ public class BranchManagerRepository extends JdbcRepository<BranchManager> {
                 " where " + BRANCH_MANAGER_COLUMN_BRANCH_ID + " = ?";
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
         preparedStatement.setInt(1, id);
+        ResultSet resultSet = preparedStatement.executeQuery();
+        return mapTo(resultSet);
+    }
+
+    public BranchManager findByBranchName(String branchName) throws SQLException {
+        String sql = "select * from " + BRANCH_MANAGER_TABLE_NAME +
+                " inner join " + BRANCH_TABLE_NAME +
+                " on " + BRANCH_MANAGER_TABLE_NAME + "." + BRANCH_MANAGER_COLUMN_BRANCH_ID + " = " + BRANCH_TABLE_NAME + "." + BRANCH_COLUMN_ID +
+                " inner join " + EMPLOYEE_TABLE_NAME +
+                " on " + BRANCH_MANAGER_TABLE_NAME + "." + BRANCH_MANAGER_COLUMN_MANAGER_ID + " = " + EMPLOYEE_TABLE_NAME + "." + EMPLOYEE_COLUMN_ID +
+                " where " + BRANCH_TABLE_NAME + "." + BRANCH_COLUMN_NAME + " = ?";
+        PreparedStatement preparedStatement = connection.prepareStatement(sql);
+        preparedStatement.setString(1, branchName);
         ResultSet resultSet = preparedStatement.executeQuery();
         return mapTo(resultSet);
     }
