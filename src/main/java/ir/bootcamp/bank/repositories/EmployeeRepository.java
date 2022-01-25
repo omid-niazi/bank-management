@@ -1,16 +1,18 @@
 package ir.bootcamp.bank.repositories;
 
+import ir.bootcamp.bank.dbutil.Condition;
+import ir.bootcamp.bank.dbutil.Query;
 import ir.bootcamp.bank.model.Branch;
 import ir.bootcamp.bank.model.Employee;
 
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
-import static ir.bootcamp.bank.util.DatabaseConstants.*;
+import static ir.bootcamp.bank.dbutil.DatabaseConstants.*;
 
 public class EmployeeRepository extends JdbcRepository<Employee> {
 
@@ -33,18 +35,11 @@ public class EmployeeRepository extends JdbcRepository<Employee> {
 
     @Override
     public int add(Employee employee) throws SQLException {
-        String sql = "insert into " + EMPLOYEE_TABLE_NAME +
-                " values (DEFAULT, ?, ?, ?, ?) " +
-                "returning " + EMPLOYEE_COLUMN_ID + "";
-        PreparedStatement preparedStatement = connection.prepareStatement(sql);
-        preparedStatement.setString(1, employee.name());
-        preparedStatement.setString(2, employee.password());
-        if (employee.directManager() != null)
-            preparedStatement.setInt(3, employee.directManager().id());
-        else
-            preparedStatement.setInt(3, Integer.MIN_VALUE);
-        preparedStatement.setInt(4, employee.branch().id());
-        ResultSet resultSet = preparedStatement.executeQuery();
+        ResultSet resultSet = statementExecutor.executeQuery(new Query.Builder()
+                .insertInto(EMPLOYEE_TABLE_NAME)
+                .setValues(employee.name(), employee.password(), employee.directManager() != null ? employee.directManager().id() : Integer.MIN_VALUE, employee.branch().id())
+                .returnColumns(EMPLOYEE_COLUMN_ID)
+                .build());
         if (resultSet.next()) {
             return resultSet.getInt(EMPLOYEE_COLUMN_ID);
         }
@@ -53,72 +48,75 @@ public class EmployeeRepository extends JdbcRepository<Employee> {
 
     @Override
     public Employee find(int id) throws SQLException {
-        String sql = "select " +
-                "emp.*, " +
-                "br.*, " +
-                "mgr." + EMPLOYEE_COLUMN_ID + " as mgr_id, " +
-                "mgr." + EMPLOYEE_COLUMN_NAME + " as mgr_name, " +
-                "mgr." + EMPLOYEE_COLUMN_PASSWORD + " as mgr_password from " + EMPLOYEE_TABLE_NAME +
-                " emp inner join " + BRANCH_TABLE_NAME + " br on " +
-                "br." + BRANCH_COLUMN_ID + " =  emp." + EMPLOYEE_COLUMN_BRANCH_ID +
-                " left join " + EMPLOYEE_TABLE_NAME + " mgr on emp." + EMPLOYEE_COLUMN_MANAGER_ID + " = mgr." + EMPLOYEE_COLUMN_ID +
-                " where " + EMPLOYEE_COLUMN_ID + " = ?";
-        PreparedStatement preparedStatement = connection.prepareStatement(sql);
-        preparedStatement.setInt(1, id);
-        ResultSet resultSet = preparedStatement.executeQuery();
+        ResultSet resultSet = statementExecutor.executeQuery(new Query.Builder()
+                .select("emp.*",
+                        "br.*",
+                        "mgr." + EMPLOYEE_COLUMN_ID + " as mgr_id",
+                        "mgr." + EMPLOYEE_COLUMN_NAME + " as mgr_name",
+                        "mgr." + EMPLOYEE_COLUMN_PASSWORD + " as mgr_password")
+                .from(EMPLOYEE_TABLE_NAME + " emp")
+                .innerJoin(BRANCH_TABLE_NAME + " br")
+                .on("br." + BRANCH_COLUMN_ID + " =  emp." + EMPLOYEE_COLUMN_BRANCH_ID)
+                .leftJoin(EMPLOYEE_TABLE_NAME + " mgr")
+                .on("emp." + EMPLOYEE_COLUMN_MANAGER_ID + " = mgr." + EMPLOYEE_COLUMN_ID)
+                .where(Condition.equalsTo("emp." + EMPLOYEE_COLUMN_ID, id))
+                .build());
         return mapTo(resultSet);
     }
 
     public Employee findByName(String name) throws SQLException {
-        String sql = "select " +
-                "emp.*, " +
-                "br.*, " +
-                "mgr." + EMPLOYEE_COLUMN_ID + " as mgr_id, " +
-                "mgr." + EMPLOYEE_COLUMN_NAME + " as mgr_name, " +
-                "mgr." + EMPLOYEE_COLUMN_PASSWORD + " as mgr_password from " + EMPLOYEE_TABLE_NAME +
-                " emp inner join " + BRANCH_TABLE_NAME + " br on " +
-                "br." + BRANCH_COLUMN_ID + " =  emp." + EMPLOYEE_COLUMN_BRANCH_ID +
-                " left join " + EMPLOYEE_TABLE_NAME + " mgr on emp." + EMPLOYEE_COLUMN_MANAGER_ID + " = mgr." + EMPLOYEE_COLUMN_ID +
-                " where emp." + EMPLOYEE_COLUMN_NAME + " = ?";
-        PreparedStatement preparedStatement = connection.prepareStatement(sql);
-        preparedStatement.setString(1, name);
-        ResultSet resultSet = preparedStatement.executeQuery();
+        ResultSet resultSet = statementExecutor.executeQuery(new Query.Builder()
+                .select("emp.*",
+                        "br.*",
+                        "mgr." + EMPLOYEE_COLUMN_ID + " as mgr_id",
+                        "mgr." + EMPLOYEE_COLUMN_NAME + " as mgr_name",
+                        "mgr." + EMPLOYEE_COLUMN_PASSWORD + " as mgr_password")
+                .from(EMPLOYEE_TABLE_NAME + " emp")
+                .innerJoin(BRANCH_TABLE_NAME + " br")
+                .on("br." + BRANCH_COLUMN_ID + " =  emp." + EMPLOYEE_COLUMN_BRANCH_ID)
+                .leftJoin(EMPLOYEE_TABLE_NAME + " mgr")
+                .on("emp." + EMPLOYEE_COLUMN_MANAGER_ID + " = mgr." + EMPLOYEE_COLUMN_ID)
+                .where(Condition.equalsTo("emp." + EMPLOYEE_COLUMN_NAME, name))
+                .build());
         return mapTo(resultSet);
     }
 
     @Override
     public List<Employee> findAll() throws SQLException {
-        String sql = "select " +
-                "emp.*, " +
-                "br.*, " +
-                "mgr." + EMPLOYEE_COLUMN_ID + " as mgr_id, " +
-                "mgr." + EMPLOYEE_COLUMN_NAME + " as mgr_name, " +
-                "mgr." + EMPLOYEE_COLUMN_PASSWORD + " as mgr_password from " + EMPLOYEE_TABLE_NAME +
-                " emp inner join " + BRANCH_TABLE_NAME + " br on " +
-                "br." + BRANCH_COLUMN_ID + " =  emp." + EMPLOYEE_COLUMN_BRANCH_ID +
-                " left join " + EMPLOYEE_TABLE_NAME + " mgr on emp." + EMPLOYEE_COLUMN_MANAGER_ID + " = mgr." + EMPLOYEE_COLUMN_ID;
-        ResultSet resultSet = connection.createStatement().executeQuery(sql);
+        ResultSet resultSet = statementExecutor.executeQuery(new Query.Builder()
+                .select("emp.*",
+                        "br.*",
+                        "mgr." + EMPLOYEE_COLUMN_ID + " as mgr_id",
+                        "mgr." + EMPLOYEE_COLUMN_NAME + " as mgr_name",
+                        "mgr." + EMPLOYEE_COLUMN_PASSWORD + " as mgr_password")
+                .from(EMPLOYEE_TABLE_NAME + " emp")
+                .innerJoin(BRANCH_TABLE_NAME + " br")
+                .on("br." + BRANCH_COLUMN_ID + " =  emp." + EMPLOYEE_COLUMN_BRANCH_ID)
+                .leftJoin(EMPLOYEE_TABLE_NAME + " mgr")
+                .on("emp." + EMPLOYEE_COLUMN_MANAGER_ID + " = mgr." + EMPLOYEE_COLUMN_ID)
+                .build());
         return mapToList(resultSet);
     }
 
     @Override
     public int update(Employee employee) throws SQLException {
-        String sql = "update " + EMPLOYEE_TABLE_NAME + " set " + EMPLOYEE_COLUMN_NAME + " = ?, " + EMPLOYEE_COLUMN_PASSWORD + " = ?, " + EMPLOYEE_COLUMN_MANAGER_ID + " = ?, " + EMPLOYEE_COLUMN_BRANCH_ID + " = ? where " + EMPLOYEE_COLUMN_ID + " = ?";
-        PreparedStatement preparedStatement = connection.prepareStatement(sql);
-        preparedStatement.setString(1, employee.name());
-        preparedStatement.setString(2, employee.password());
-        preparedStatement.setInt(3, employee.directManager().id());
-        preparedStatement.setInt(4, employee.branch().id());
-        preparedStatement.setInt(5, employee.id());
-        return preparedStatement.executeUpdate();
+        return statementExecutor.executeUpdate(new Query.Builder()
+                .update(EMPLOYEE_TABLE_NAME)
+                .set(Map.of(
+                        EMPLOYEE_COLUMN_NAME, employee.name(),
+                        EMPLOYEE_COLUMN_PASSWORD, employee.password(),
+                        EMPLOYEE_COLUMN_MANAGER_ID, employee.directManager().id(),
+                        EMPLOYEE_COLUMN_BRANCH_ID, employee.branch().id()))
+                .where(Condition.equalsTo(CARD_COLUMN_ACCOUNT_ID, employee.id()))
+                .build());
     }
 
     @Override
     public int delete(int id) throws SQLException {
-        String sql = "delete from " + EMPLOYEE_TABLE_NAME + " where " + EMPLOYEE_COLUMN_ID + " = ?";
-        PreparedStatement preparedStatement = connection.prepareStatement(sql);
-        preparedStatement.setInt(1, id);
-        return preparedStatement.executeUpdate();
+        return statementExecutor.executeUpdate(new Query.Builder()
+                .deleteFrom(EMPLOYEE_TABLE_NAME)
+                .where(Condition.equalsTo(EMPLOYEE_COLUMN_ID, id))
+                .build());
     }
 
     @Override

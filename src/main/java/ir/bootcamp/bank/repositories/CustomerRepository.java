@@ -1,15 +1,17 @@
 package ir.bootcamp.bank.repositories;
 
+import ir.bootcamp.bank.dbutil.Condition;
+import ir.bootcamp.bank.dbutil.Query;
 import ir.bootcamp.bank.model.Customer;
 
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
-import static ir.bootcamp.bank.util.DatabaseConstants.*;
+import static ir.bootcamp.bank.dbutil.DatabaseConstants.*;
 
 public class CustomerRepository extends JdbcRepository<Customer> {
 
@@ -33,12 +35,11 @@ public class CustomerRepository extends JdbcRepository<Customer> {
 
     @Override
     public int add(Customer customer) throws SQLException {
-        String sql = "insert into " + CUSTOMER_TABLE_NAME + " values (DEFAULT, ?, ?, ?) returning " + CUSTOMER_COLUMN_ID + "";
-        PreparedStatement preparedStatement = connection.prepareStatement(sql);
-        preparedStatement.setString(1, customer.name());
-        preparedStatement.setString(2, customer.nationalCode());
-        preparedStatement.setString(3, customer.phone());
-        ResultSet resultSet = preparedStatement.executeQuery();
+        ResultSet resultSet = statementExecutor.executeQuery(new Query.Builder()
+                .insertInto(CUSTOMER_TABLE_NAME)
+                .setValues(customer.name(), customer.nationalCode(), customer.phone())
+                .returnColumns(CUSTOMER_COLUMN_ID)
+                .build());
         if (resultSet.next()) {
             return resultSet.getInt(CUSTOMER_COLUMN_ID);
         }
@@ -47,45 +48,53 @@ public class CustomerRepository extends JdbcRepository<Customer> {
 
     @Override
     public Customer find(int id) throws SQLException {
-        String sql = "select * from " + CUSTOMER_TABLE_NAME + " where " + CUSTOMER_COLUMN_ID + " = ?";
-        PreparedStatement preparedStatement = connection.prepareStatement(sql);
-        preparedStatement.setInt(1, id);
-        ResultSet resultSet = preparedStatement.executeQuery();
+        ResultSet resultSet =
+                statementExecutor.executeQuery(new Query.Builder()
+                        .select("*")
+                        .from(CUSTOMER_TABLE_NAME)
+                        .where(Condition.equalsTo(CUSTOMER_COLUMN_ID, id))
+                        .build());
         return mapTo(resultSet);
     }
 
     public Customer find(String nationalCode) throws SQLException {
-        String sql = "select * from " + CUSTOMER_TABLE_NAME + " where " + CUSTOMER_COLUMN_NATIONAL_CODE+ " = ?";
-        PreparedStatement preparedStatement = connection.prepareStatement(sql);
-        preparedStatement.setString(1, nationalCode);
-        ResultSet resultSet = preparedStatement.executeQuery();
+        ResultSet resultSet =
+                statementExecutor.executeQuery(new Query.Builder()
+                        .select("*")
+                        .from(CUSTOMER_TABLE_NAME)
+                        .where(Condition.equalsTo(CUSTOMER_COLUMN_NATIONAL_CODE, nationalCode))
+                        .build());
         return mapTo(resultSet);
     }
 
     @Override
     public List<Customer> findAll() throws SQLException {
-        String sql = "select * from " + CUSTOMER_TABLE_NAME + "";
-        ResultSet resultSet = connection.createStatement().executeQuery(sql);
+        ResultSet resultSet =
+                statementExecutor.executeQuery(new Query.Builder()
+                        .select("*")
+                        .from(CUSTOMER_TABLE_NAME)
+                        .build());
         return mapToList(resultSet);
     }
 
     @Override
     public int update(Customer customer) throws SQLException {
-        String sql = "update " + CUSTOMER_TABLE_NAME + " set " + CUSTOMER_COLUMN_NAME + " = ?, " + CUSTOMER_COLUMN_NATIONAL_CODE + " = ?, " + CUSTOMER_COLUMN_PHONE + " = ? where " + CUSTOMER_COLUMN_ID + " = ?";
-        PreparedStatement preparedStatement = connection.prepareStatement(sql);
-        preparedStatement.setString(1, customer.name());
-        preparedStatement.setString(2, customer.nationalCode());
-        preparedStatement.setString(3, customer.phone());
-        preparedStatement.setInt(4, customer.id());
-        return preparedStatement.executeUpdate();
+        return statementExecutor.executeUpdate(new Query.Builder()
+                .update(CUSTOMER_TABLE_NAME)
+                .set(Map.of(
+                        CUSTOMER_COLUMN_NAME, customer.name(),
+                        CUSTOMER_COLUMN_NATIONAL_CODE, customer.nationalCode(),
+                        CUSTOMER_COLUMN_PHONE, customer.phone()))
+                .where(Condition.equalsTo(CUSTOMER_COLUMN_ID, customer.id()))
+                .build());
     }
 
     @Override
     public int delete(int id) throws SQLException {
-        String sql = "delete from " + CUSTOMER_TABLE_NAME + " where " + CUSTOMER_COLUMN_ID + " = ?";
-        PreparedStatement preparedStatement = connection.prepareStatement(sql);
-        preparedStatement.setInt(1, id);
-        return preparedStatement.executeUpdate();
+        return statementExecutor.executeUpdate(new Query.Builder()
+                .deleteFrom(CUSTOMER_TABLE_NAME)
+                .where(Condition.equalsTo(CUSTOMER_COLUMN_ID, id))
+                .build());
     }
 
     @Override

@@ -1,4 +1,4 @@
-package ir.bootcamp.bank.util;
+package ir.bootcamp.bank.dbutil;
 
 public class DatabaseConstants {
     public static final String CUSTOMER_TABLE_NAME = "customer";

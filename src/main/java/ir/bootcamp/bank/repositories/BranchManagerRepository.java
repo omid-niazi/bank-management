@@ -1,15 +1,17 @@
 package ir.bootcamp.bank.repositories;
 
+import ir.bootcamp.bank.dbutil.Condition;
+import ir.bootcamp.bank.dbutil.Query;
 import ir.bootcamp.bank.model.*;
 
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
-import static ir.bootcamp.bank.util.DatabaseConstants.*;
+import static ir.bootcamp.bank.dbutil.DatabaseConstants.*;
 
 public class BranchManagerRepository extends JdbcRepository<BranchManager> {
 
@@ -30,11 +32,11 @@ public class BranchManagerRepository extends JdbcRepository<BranchManager> {
 
     @Override
     public int add(BranchManager branchManager) throws SQLException {
-        String sql = "insert into " + BRANCH_MANAGER_TABLE_NAME + " values (DEFAULT, ?, ?) returning " + BRANCH_MANAGER_COLUMN_ID + "";
-        PreparedStatement preparedStatement = connection.prepareStatement(sql);
-        preparedStatement.setInt(1, branchManager.branch().id());
-        preparedStatement.setInt(2, branchManager.manager().id());
-        ResultSet resultSet = preparedStatement.executeQuery();
+        ResultSet resultSet = statementExecutor.executeQuery(new Query.Builder()
+                .insertInto(BRANCH_MANAGER_TABLE_NAME)
+                .setValues(branchManager.branch().id(), branchManager.manager().id())
+                .returnColumns(BRANCH_MANAGER_COLUMN_ID)
+                .build());
         if (resultSet.next()) {
             return resultSet.getInt(BRANCH_MANAGER_COLUMN_ID);
         }
@@ -43,73 +45,78 @@ public class BranchManagerRepository extends JdbcRepository<BranchManager> {
 
     @Override
     public BranchManager find(int id) throws SQLException {
-        String sql = "select * from " + BRANCH_MANAGER_TABLE_NAME +
-                " inner join " + BRANCH_TABLE_NAME +
-                " on " + BRANCH_MANAGER_TABLE_NAME + "." + BRANCH_MANAGER_COLUMN_BRANCH_ID + " = " + BRANCH_TABLE_NAME + "." + BRANCH_COLUMN_ID +
-                " inner join " + EMPLOYEE_TABLE_NAME +
-                " on " + BRANCH_MANAGER_TABLE_NAME + "." + BRANCH_MANAGER_COLUMN_MANAGER_ID + " = " + EMPLOYEE_TABLE_NAME + "." + EMPLOYEE_COLUMN_ID +
-                " where " + BRANCH_MANAGER_COLUMN_ID + " = ?";
-        PreparedStatement preparedStatement = connection.prepareStatement(sql);
-        preparedStatement.setInt(1, id);
-        ResultSet resultSet = preparedStatement.executeQuery();
+        ResultSet resultSet =
+                statementExecutor.executeQuery(new Query.Builder()
+                        .select("*")
+                        .from(BRANCH_MANAGER_TABLE_NAME)
+                        .innerJoin(BRANCH_TABLE_NAME)
+                        .on(BRANCH_MANAGER_TABLE_NAME + "." + BRANCH_MANAGER_COLUMN_BRANCH_ID + " = " + BRANCH_TABLE_NAME + "." + BRANCH_COLUMN_ID)
+                        .innerJoin(EMPLOYEE_TABLE_NAME)
+                        .on(BRANCH_MANAGER_TABLE_NAME + "." + BRANCH_MANAGER_COLUMN_MANAGER_ID + " = " + EMPLOYEE_TABLE_NAME + "." + EMPLOYEE_COLUMN_ID)
+                        .where(Condition.equalsTo(BRANCH_MANAGER_COLUMN_ID, id))
+                        .build());
         return mapTo(resultSet);
     }
 
     public BranchManager findByBranchId(int id) throws SQLException {
-        String sql = "select * from " + BRANCH_MANAGER_TABLE_NAME +
-                " inner join " + BRANCH_TABLE_NAME +
-                " on " + BRANCH_MANAGER_TABLE_NAME + "." + BRANCH_MANAGER_COLUMN_BRANCH_ID + " = " + BRANCH_TABLE_NAME + "." + BRANCH_COLUMN_ID +
-                " inner join " + EMPLOYEE_TABLE_NAME +
-                " on " + BRANCH_MANAGER_TABLE_NAME + "." + BRANCH_MANAGER_COLUMN_MANAGER_ID + " = " + EMPLOYEE_TABLE_NAME + "." + EMPLOYEE_COLUMN_ID +
-                " where " + BRANCH_MANAGER_COLUMN_BRANCH_ID + " = ?";
-        PreparedStatement preparedStatement = connection.prepareStatement(sql);
-        preparedStatement.setInt(1, id);
-        ResultSet resultSet = preparedStatement.executeQuery();
+        ResultSet resultSet =
+                statementExecutor.executeQuery(new Query.Builder()
+                        .select("*")
+                        .from(BRANCH_MANAGER_TABLE_NAME)
+                        .innerJoin(BRANCH_TABLE_NAME)
+                        .on(BRANCH_MANAGER_TABLE_NAME + "." + BRANCH_MANAGER_COLUMN_BRANCH_ID + " = " + BRANCH_TABLE_NAME + "." + BRANCH_COLUMN_ID)
+                        .innerJoin(EMPLOYEE_TABLE_NAME)
+                        .on(BRANCH_MANAGER_TABLE_NAME + "." + BRANCH_MANAGER_COLUMN_MANAGER_ID + " = " + EMPLOYEE_TABLE_NAME + "." + EMPLOYEE_COLUMN_ID)
+                        .where(Condition.equalsTo(BRANCH_MANAGER_COLUMN_BRANCH_ID, id))
+                        .build());
         return mapTo(resultSet);
     }
 
     public BranchManager findByBranchName(String branchName) throws SQLException {
-        String sql = "select * from " + BRANCH_MANAGER_TABLE_NAME +
-                " inner join " + BRANCH_TABLE_NAME +
-                " on " + BRANCH_MANAGER_TABLE_NAME + "." + BRANCH_MANAGER_COLUMN_BRANCH_ID + " = " + BRANCH_TABLE_NAME + "." + BRANCH_COLUMN_ID +
-                " inner join " + EMPLOYEE_TABLE_NAME +
-                " on " + BRANCH_MANAGER_TABLE_NAME + "." + BRANCH_MANAGER_COLUMN_MANAGER_ID + " = " + EMPLOYEE_TABLE_NAME + "." + EMPLOYEE_COLUMN_ID +
-                " where " + BRANCH_TABLE_NAME + "." + BRANCH_COLUMN_NAME + " = ?";
-        PreparedStatement preparedStatement = connection.prepareStatement(sql);
-        preparedStatement.setString(1, branchName);
-        ResultSet resultSet = preparedStatement.executeQuery();
+        ResultSet resultSet =
+                statementExecutor.executeQuery(new Query.Builder()
+                        .select("*")
+                        .from(BRANCH_MANAGER_TABLE_NAME)
+                        .innerJoin(BRANCH_TABLE_NAME)
+                        .on(BRANCH_MANAGER_TABLE_NAME + "." + BRANCH_MANAGER_COLUMN_BRANCH_ID + " = " + BRANCH_TABLE_NAME + "." + BRANCH_COLUMN_ID)
+                        .innerJoin(EMPLOYEE_TABLE_NAME)
+                        .on(BRANCH_MANAGER_TABLE_NAME + "." + BRANCH_MANAGER_COLUMN_MANAGER_ID + " = " + EMPLOYEE_TABLE_NAME + "." + EMPLOYEE_COLUMN_ID)
+                        .where(Condition.equalsTo(BRANCH_TABLE_NAME + "." + BRANCH_COLUMN_NAME, branchName))
+                        .build());
         return mapTo(resultSet);
     }
 
     @Override
     public List<BranchManager> findAll() throws SQLException {
-        String sql = "select * from " + BRANCH_MANAGER_TABLE_NAME +
-                " inner join " + BRANCH_TABLE_NAME +
-                " on " + BRANCH_MANAGER_TABLE_NAME + "." + BRANCH_MANAGER_COLUMN_BRANCH_ID + " = " + BRANCH_TABLE_NAME + "." + BRANCH_COLUMN_ID +
-                " inner join " + EMPLOYEE_TABLE_NAME +
-                " on " + BRANCH_MANAGER_TABLE_NAME + "." + BRANCH_MANAGER_COLUMN_MANAGER_ID + " = " + EMPLOYEE_TABLE_NAME + "." + EMPLOYEE_COLUMN_ID;
-        ResultSet resultSet = connection.createStatement().executeQuery(sql);
+        ResultSet resultSet =
+                statementExecutor.executeQuery(new Query.Builder()
+                        .select("*")
+                        .from(BRANCH_MANAGER_TABLE_NAME)
+                        .innerJoin(BRANCH_TABLE_NAME)
+                        .on(BRANCH_MANAGER_TABLE_NAME + "." + BRANCH_MANAGER_COLUMN_BRANCH_ID + " = " + BRANCH_TABLE_NAME + "." + BRANCH_COLUMN_ID)
+                        .innerJoin(EMPLOYEE_TABLE_NAME)
+                        .on(BRANCH_MANAGER_TABLE_NAME + "." + BRANCH_MANAGER_COLUMN_MANAGER_ID + " = " + EMPLOYEE_TABLE_NAME + "." + EMPLOYEE_COLUMN_ID)
+                        .build());
         return mapToList(resultSet);
     }
 
     @Override
     public int update(BranchManager branchManager) throws SQLException {
-        String sql = "update " + BRANCH_MANAGER_TABLE_NAME + " set " +
-                BRANCH_MANAGER_COLUMN_BRANCH_ID + " = ?, " +
-                BRANCH_MANAGER_COLUMN_MANAGER_ID + " = ? " +
-                "where " + BRANCH_MANAGER_COLUMN_ID + " = ?";
-        PreparedStatement preparedStatement = connection.prepareStatement(sql);
-        preparedStatement.setInt(1, branchManager.branch().id());
-        preparedStatement.setInt(2, branchManager.manager().id());
-        return preparedStatement.executeUpdate();
+        return statementExecutor.executeUpdate(new Query.Builder()
+                .update(BRANCH_MANAGER_TABLE_NAME)
+                .set(Map.of(
+                        BRANCH_MANAGER_COLUMN_BRANCH_ID, branchManager.branch().id(),
+                        BRANCH_MANAGER_COLUMN_MANAGER_ID, branchManager.manager().id()))
+                .where(Condition.equalsTo(BRANCH_MANAGER_COLUMN_ID, branchManager.id()))
+                .build());
     }
 
     @Override
     public int delete(int id) throws SQLException {
-        String sql = "delete from " + BRANCH_MANAGER_TABLE_NAME + " where " + BRANCH_MANAGER_COLUMN_ID + " = ?";
-        PreparedStatement preparedStatement = connection.prepareStatement(sql);
-        preparedStatement.setInt(1, id);
-        return preparedStatement.executeUpdate();
+        return statementExecutor.executeUpdate(new Query.Builder()
+                .deleteFrom(BRANCH_MANAGER_TABLE_NAME)
+                .where(Condition.equalsTo(BRANCH_MANAGER_COLUMN_ID, id))
+                .build());
     }
 
     @Override

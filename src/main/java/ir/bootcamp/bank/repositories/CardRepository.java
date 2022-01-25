@@ -1,17 +1,19 @@
 package ir.bootcamp.bank.repositories;
 
+import ir.bootcamp.bank.dbutil.Condition;
+import ir.bootcamp.bank.dbutil.Query;
 import ir.bootcamp.bank.model.Account;
 import ir.bootcamp.bank.model.Card;
 import ir.bootcamp.bank.model.Customer;
 
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
-import static ir.bootcamp.bank.util.DatabaseConstants.*;
+import static ir.bootcamp.bank.dbutil.DatabaseConstants.*;
 
 public class CardRepository extends JdbcRepository<Card> {
 
@@ -38,16 +40,11 @@ public class CardRepository extends JdbcRepository<Card> {
 
     @Override
     public int add(Card card) throws SQLException {
-        String sql = "insert into " + CARD_TABLE_NAME + " values (DEFAULT, ?, ?, ?,?,?,?,?) returning " + CARD_COLUMN_ID + "";
-        PreparedStatement preparedStatement = connection.prepareStatement(sql);
-        preparedStatement.setString(1, card.cardNumber());
-        preparedStatement.setShort(2, card.cvv2());
-        preparedStatement.setString(3, card.password());
-        preparedStatement.setDate(4, card.expireDate());
-        preparedStatement.setInt(5, card.account().id());
-        preparedStatement.setInt(6, card.failedAttempt());
-        preparedStatement.setInt(7, card.status());
-        ResultSet resultSet = preparedStatement.executeQuery();
+        ResultSet resultSet = statementExecutor.executeQuery(new Query.Builder()
+                .insertInto(CARD_TABLE_NAME)
+                .setValues(card.cardNumber(), card.cvv2(), card.password(), card.expireDate(), card.account().id(), card.failedAttempt(), card.status())
+                .returnColumns(CARD_COLUMN_ID)
+                .build());
         if (resultSet.next()) {
             return resultSet.getInt(CARD_COLUMN_ID);
         }
@@ -56,72 +53,70 @@ public class CardRepository extends JdbcRepository<Card> {
 
     @Override
     public Card find(int id) throws SQLException {
-        String sql = "select * from " + CARD_TABLE_NAME +
-                " inner join " + ACCOUNT_TABLE_NAME +
-                " on " + CARD_TABLE_NAME + "." + CARD_COLUMN_ACCOUNT_ID + " = " + ACCOUNT_TABLE_NAME + "." + ACCOUNT_COLUMN_ID +
-                " inner join " + CUSTOMER_TABLE_NAME +
-                " on " + ACCOUNT_TABLE_NAME + "." + ACCOUNT_COLUMN_CUSTOMER_ID + " = " + CUSTOMER_TABLE_NAME + "." + CUSTOMER_COLUMN_ID +
-                " where " + CARD_COLUMN_ID + " = ?";
-        PreparedStatement preparedStatement = connection.prepareStatement(sql);
-        preparedStatement.setInt(1, id);
-        ResultSet resultSet = preparedStatement.executeQuery();
+        ResultSet resultSet =
+                statementExecutor.executeQuery(new Query.Builder()
+                        .select("*")
+                        .from(CARD_TABLE_NAME)
+                        .innerJoin(ACCOUNT_TABLE_NAME)
+                        .on(CARD_TABLE_NAME + "." + CARD_COLUMN_ACCOUNT_ID + " = " + ACCOUNT_TABLE_NAME + "." + ACCOUNT_COLUMN_ID)
+                        .innerJoin(CUSTOMER_TABLE_NAME)
+                        .on(ACCOUNT_TABLE_NAME + "." + ACCOUNT_COLUMN_CUSTOMER_ID + " = " + CUSTOMER_TABLE_NAME + "." + CUSTOMER_COLUMN_ID)
+                        .where(Condition.equalsTo(CARD_COLUMN_ID, id))
+                        .build());
         return mapTo(resultSet);
     }
 
 
     public Card find(String cardNumber) throws SQLException {
-        String sql = "select * from " + CARD_TABLE_NAME +
-                " inner join " + ACCOUNT_TABLE_NAME +
-                " on " + CARD_TABLE_NAME + "." + CARD_COLUMN_ACCOUNT_ID + " = " + ACCOUNT_TABLE_NAME + "." + ACCOUNT_COLUMN_ID +
-                " inner join " + CUSTOMER_TABLE_NAME +
-                " on " + ACCOUNT_TABLE_NAME + "." + ACCOUNT_COLUMN_CUSTOMER_ID + " = " + CUSTOMER_TABLE_NAME + "." + CUSTOMER_COLUMN_ID +
-                " where " + CARD_COLUMN_NUMBER + " = ?";
-        PreparedStatement preparedStatement = connection.prepareStatement(sql);
-        preparedStatement.setString(1, cardNumber);
-        ResultSet resultSet = preparedStatement.executeQuery();
+        ResultSet resultSet =
+                statementExecutor.executeQuery(new Query.Builder()
+                        .select("*")
+                        .from(CARD_TABLE_NAME)
+                        .innerJoin(ACCOUNT_TABLE_NAME)
+                        .on(CARD_TABLE_NAME + "." + CARD_COLUMN_ACCOUNT_ID + " = " + ACCOUNT_TABLE_NAME + "." + ACCOUNT_COLUMN_ID)
+                        .innerJoin(CUSTOMER_TABLE_NAME)
+                        .on(ACCOUNT_TABLE_NAME + "." + ACCOUNT_COLUMN_CUSTOMER_ID + " = " + CUSTOMER_TABLE_NAME + "." + CUSTOMER_COLUMN_ID)
+                        .where(Condition.equalsTo(CARD_COLUMN_NUMBER, cardNumber))
+                        .build());
         return mapTo(resultSet);
     }
 
     @Override
     public List<Card> findAll() throws SQLException {
-        String sql = "select * from " + CARD_TABLE_NAME +
-                " inner join " + ACCOUNT_TABLE_NAME +
-                " on " + CARD_TABLE_NAME + "." + CARD_COLUMN_ACCOUNT_ID + " = " + ACCOUNT_TABLE_NAME + "." + ACCOUNT_COLUMN_ID +
-                " inner join " + CUSTOMER_TABLE_NAME +
-                " on " + ACCOUNT_TABLE_NAME + "." + ACCOUNT_COLUMN_CUSTOMER_ID + " = " + CUSTOMER_TABLE_NAME + "." + CUSTOMER_COLUMN_ID;
-        ResultSet resultSet = connection.createStatement().executeQuery(sql);
+        ResultSet resultSet =
+                statementExecutor.executeQuery(new Query.Builder()
+                        .select("*")
+                        .from(CARD_TABLE_NAME)
+                        .innerJoin(ACCOUNT_TABLE_NAME)
+                        .on(CARD_TABLE_NAME + "." + CARD_COLUMN_ACCOUNT_ID + " = " + ACCOUNT_TABLE_NAME + "." + ACCOUNT_COLUMN_ID)
+                        .innerJoin(CUSTOMER_TABLE_NAME)
+                        .on(ACCOUNT_TABLE_NAME + "." + ACCOUNT_COLUMN_CUSTOMER_ID + " = " + CUSTOMER_TABLE_NAME + "." + CUSTOMER_COLUMN_ID)
+                        .build());
         return mapToList(resultSet);
     }
 
     @Override
     public int update(Card card) throws SQLException {
-        String sql = "update " + CARD_TABLE_NAME + " set " +
-                CARD_COLUMN_NUMBER + " = ?, " +
-                CARD_COLUMN_CVV2 + " = ?, " +
-                CARD_COLUMN_PASSWORD + " = ?, " +
-                CARD_COLUMN_EXPIRE_DATE + " = ?, " +
-                CARD_COLUMN_ACCOUNT_ID + " = ?, " +
-                CARD_COLUMN_FAILED_ATTEMPT + " = ?, " +
-                CARD_COLUMN_STATUS + " = ? " +
-                "where " + CARD_COLUMN_ID + " = ?";
-        PreparedStatement preparedStatement = connection.prepareStatement(sql);
-        preparedStatement.setString(1, card.cardNumber());
-        preparedStatement.setShort(2, card.cvv2());
-        preparedStatement.setString(3, card.password());
-        preparedStatement.setDate(4, card.expireDate());
-        preparedStatement.setInt(5, card.account().id());
-        preparedStatement.setInt(6, card.failedAttempt());
-        preparedStatement.setInt(7, card.status());
-        preparedStatement.setInt(8, card.id());
-        return preparedStatement.executeUpdate();
+        return statementExecutor.executeUpdate(new Query.Builder()
+                .update(CARD_TABLE_NAME)
+                .set(Map.of(
+                        CARD_COLUMN_NUMBER, card.cardNumber(),
+                        CARD_COLUMN_CVV2, card.cvv2(),
+                        CARD_COLUMN_PASSWORD, card.password(),
+                        CARD_COLUMN_EXPIRE_DATE, card.expireDate(),
+                        CARD_COLUMN_ACCOUNT_ID, card.account().id(),
+                        CARD_COLUMN_FAILED_ATTEMPT, card.failedAttempt(),
+                        CARD_COLUMN_STATUS, card.status()))
+                .where(Condition.equalsTo(CARD_COLUMN_ID, card.id()))
+                .build());
     }
 
     @Override
     public int delete(int id) throws SQLException {
-        String sql = "delete from " + CARD_TABLE_NAME + " where " + CARD_COLUMN_ID + " = ?";
-        PreparedStatement preparedStatement = connection.prepareStatement(sql);
-        preparedStatement.setInt(1, id);
-        return preparedStatement.executeUpdate();
+        return statementExecutor.executeUpdate(new Query.Builder()
+                .deleteFrom(CARD_TABLE_NAME)
+                .where(Condition.equalsTo(CARD_COLUMN_ID, id))
+                .build());
     }
 
     @Override
