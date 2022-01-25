@@ -2,14 +2,17 @@ package ir.bootcamp.bank;
 
 import ir.bootcamp.bank.exceptions.*;
 import ir.bootcamp.bank.model.Account;
+import ir.bootcamp.bank.model.Customer;
 import ir.bootcamp.bank.model.Transaction;
 import ir.bootcamp.bank.repositories.*;
 import ir.bootcamp.bank.service.*;
 import ir.bootcamp.bank.util.PropertiesHelper;
 
+import javax.security.auth.login.ConfigurationSpi;
 import java.io.IOException;
 import java.sql.*;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Scanner;
 
@@ -40,7 +43,6 @@ public class App {
         }
 
         try (Connection connection = DriverManager.getConnection(properties.getProperty("url"), properties.getProperty("user"), properties.getProperty("password"));) {
-
             EmployeeRepository employeeRepository = new EmployeeRepository(connection);
             BranchRepository branchRepository = new BranchRepository(connection);
             CustomerRepository customerRepository = new CustomerRepository(connection);
@@ -261,7 +263,7 @@ public class App {
         String accountNumber = scanner.nextLine();
         try {
             employeeService.removeAccount(accountNumber);
-            print("account removed" , success);
+            print("account removed", success);
         } catch (AccountNotFoundException e) {
             print(e.getMessage(), error);
         }
@@ -303,7 +305,13 @@ public class App {
         scanner.nextLine();
         System.out.println("enter expire date (format 2022-01-01): ");
         String expireDateInString = scanner.nextLine();
-        Date expireDate = Date.valueOf(expireDateInString);
+        Date expireDate = null;
+        try {
+            expireDate = Date.valueOf(expireDateInString);
+        } catch (Exception e) {
+            print("wrong date format", error);
+            return;
+        }
         System.out.println("enter account number");
         String acountNumber = scanner.nextLine();
         try {
@@ -342,7 +350,13 @@ public class App {
         System.out.println("enter card number");
         String cardNumber = scanner.nextLine();
         System.out.println("enter time(yyy-[m]m-[d]d hh:mm:ss format): ");
-        Timestamp timestamp = Timestamp.valueOf(scanner.nextLine());
+        Timestamp timestamp = null;
+        try {
+            timestamp = Timestamp.valueOf(scanner.nextLine());
+        } catch (Exception e) {
+            print("wrong time format", error);
+            return;
+        }
         List<Transaction> transactions = employeeService.findTransactions(cardNumber, timestamp);
         for (Transaction transaction : transactions) {
             print(transaction.toString(), info);
@@ -418,7 +432,13 @@ public class App {
         scanner.nextLine();
         System.out.println("enter expire date (format 2022-01-01): ");
         String expireDateInString = scanner.nextLine();
-        Date expireDate = Date.valueOf(expireDateInString);
+        Date expireDate = null;
+        try {
+            expireDate = Date.valueOf(expireDateInString);
+        } catch (Exception e) {
+            print("wrong date format", error);
+            return;
+        }
         System.out.println("enter your password");
         String password = scanner.nextLine();
         try {
