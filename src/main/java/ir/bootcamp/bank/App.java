@@ -1,5 +1,6 @@
 package ir.bootcamp.bank;
 
+import ir.bootcamp.bank.dbutil.ConnectionFactory;
 import ir.bootcamp.bank.exceptions.*;
 import ir.bootcamp.bank.model.Account;
 import ir.bootcamp.bank.model.Customer;
@@ -30,19 +31,11 @@ public class App {
     private static SuperUserService superUserService;
     private static TransactionService transactionService;
 
+
     public static void main(String[] args) {
         scanner = new Scanner(System.in);
 
-
-        Properties properties = null;
-        try {
-            properties = PropertiesHelper.loadPropertiesFile("database-config.txt");
-        } catch (IOException e) {
-            print("create database-config.txt in resources folder", error);
-            return;
-        }
-
-        try (Connection connection = DriverManager.getConnection(properties.getProperty("url"), properties.getProperty("user"), properties.getProperty("password"));) {
+        try (Connection connection = ConnectionFactory.getConnection("database-config.txt")) {
             EmployeeRepository employeeRepository = new EmployeeRepository(connection);
             BranchRepository branchRepository = new BranchRepository(connection);
             CustomerRepository customerRepository = new CustomerRepository(connection);
@@ -65,7 +58,9 @@ public class App {
                 System.out.println("please check the database-config.txt file in resources folder");
                 return;
             }
-            throw new RuntimeException();
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            print("create database-config.txt in resources folder", error);
         }
     }
 

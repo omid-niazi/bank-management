@@ -1,70 +1,107 @@
 package ir.bootcamp.bank.repositories;
 
-import ir.bootcamp.bank.dbutil.Condition;
-import ir.bootcamp.bank.dbutil.Query;
+import ir.bootcamp.bank.dbutil.SingletonSessionFactory;
 import ir.bootcamp.bank.model.Account;
 import ir.bootcamp.bank.model.Customer;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import static ir.bootcamp.bank.dbutil.DatabaseConstants.*;
 
 public class AccountRepository extends JdbcRepository<Account> {
 
+    private SessionFactory sessionFactory;
+
     public AccountRepository(Connection connection) throws SQLException {
         super(connection);
+        sessionFactory = SingletonSessionFactory.getSessionFactory();
     }
 
     @Override
     protected void createTable() throws SQLException {
-        String query = "create table if not exists " + ACCOUNT_TABLE_NAME + "" + "(" + "    " + ACCOUNT_COLUMN_ID + "       serial primary key," + "    " + ACCOUNT_COLUMN_NUMBER + "     varchar(255) unique not null ," + "    " + ACCOUNT_COLUMN_AMOUNT + " bigint  not null ," + "    " + ACCOUNT_COLUMN_CUSTOMER_ID + " int not null" + "" + ");";
-        connection.createStatement().execute(query);
     }
 
     @Override
     public int add(Account account) throws SQLException {
-        ResultSet resultSet = statementExecutor.executeQuery(new Query.Builder().insertInto(ACCOUNT_TABLE_NAME).setValues(account.accountNumber(), account.amount(), account.customer().id()).returnColumns(ACCOUNT_COLUMN_ID).build());
-        if (resultSet.next()) {
-            return resultSet.getInt(ACCOUNT_COLUMN_ID);
+        try (Session session = sessionFactory.openSession()) {
+            session.beginTransaction();
+            session.save(account);
+            session.getTransaction().commit();
+            return account.id();
         }
-        return -1;
     }
 
     @Override
     public Account find(int id) throws SQLException {
-        ResultSet resultSet = statementExecutor.executeQuery(new Query.Builder().select("*").from(ACCOUNT_TABLE_NAME).innerJoin(CUSTOMER_TABLE_NAME).on(ACCOUNT_TABLE_NAME + "." + ACCOUNT_COLUMN_CUSTOMER_ID + " = " + CUSTOMER_TABLE_NAME + "." + CUSTOMER_COLUMN_ID).where(Condition.equalsTo(ACCOUNT_COLUMN_ID, id)).build());
-        return mapTo(resultSet);
+        try (Session session = sessionFactory.openSession()) {
+            return session.find(Account.class, id);
+        }
     }
 
     public Account findByAccountNumber(String accountNumber) throws SQLException {
-        ResultSet resultSet = statementExecutor.executeQuery(new Query.Builder().select("*").from(ACCOUNT_TABLE_NAME).innerJoin(CUSTOMER_TABLE_NAME).on(ACCOUNT_TABLE_NAME + "." + ACCOUNT_COLUMN_CUSTOMER_ID + " = " + CUSTOMER_TABLE_NAME + "." + CUSTOMER_COLUMN_ID).where(Condition.equalsTo(ACCOUNT_COLUMN_NUMBER, accountNumber)).build());
-        return mapTo(resultSet);
+        try (Session session = sessionFactory.openSession()) {
+            Account accountNumber1 = null;
+            try {
+                accountNumber1 = session.createQuery("from Account where accountNumber=:accountNumber", Account.class)
+                        .setParameter("accountNumber", accountNumber).getSingleResult();
+            } catch (Exception ignored) {
+            }
+            return accountNumber1;
+        }
     }
 
     public List<Account> findByCustomerId(int customerId) throws SQLException {
-        ResultSet resultSet = statementExecutor.executeQuery(new Query.Builder().select("*").from(ACCOUNT_TABLE_NAME).innerJoin(CUSTOMER_TABLE_NAME).on(ACCOUNT_TABLE_NAME + "." + ACCOUNT_COLUMN_CUSTOMER_ID + " = " + CUSTOMER_TABLE_NAME + "." + CUSTOMER_COLUMN_ID).where(Condition.equalsTo(ACCOUNT_COLUMN_CUSTOMER_ID, customerId)).build());
-        return mapToList(resultSet);
+        try (Session session = sessionFactory.openSession()) {
+            List<Account> customerAccounts = new ArrayList<>();
+            try {
+                customerAccounts = session.createQuery("from Account where customer.id = :customerId", Account.class)
+                        .setParameter("customerId", customerId)
+                        .getResultList();
+            } catch (Exception ignored) {
+            }
+            return customerAccounts;
+        }
     }
 
     @Override
     public List<Account> findAll() throws SQLException {
-        ResultSet resultSet = statementExecutor.executeQuery(new Query.Builder().select("*").from(ACCOUNT_TABLE_NAME).innerJoin(CUSTOMER_TABLE_NAME).on(ACCOUNT_TABLE_NAME + "." + ACCOUNT_COLUMN_CUSTOMER_ID + " = " + CUSTOMER_TABLE_NAME + "." + CUSTOMER_COLUMN_ID).build());
-        return mapToList(resultSet);
+        try (Session session = sessionFactory.openSession()) {
+            List<Account> accounts = new ArrayList<>();
+            try {
+                accounts = session.createQuery("from Account", Account.class).getResultList();
+            } catch (Exception ignored) {
+            }
+            return accounts;
+        }
     }
 
     @Override
     public int update(Account account) throws SQLException {
-        return statementExecutor.executeUpdate(new Query.Builder().update(ACCOUNT_TABLE_NAME).set(Map.of(ACCOUNT_COLUMN_NUMBER, account.accountNumber(), ACCOUNT_COLUMN_AMOUNT, account.amount(), ACCOUNT_COLUMN_CUSTOMER_ID, account.customer().id())).where(Condition.equalsTo(ACCOUNT_COLUMN_ID, account.id())).build());
+        try (Session session = sessionFactory.openSession()) {
+            session.beginTransaction();
+            session.update(account);
+            session.getTransaction().commit();
+            return account.id();
+        }
     }
 
     @Override
     public int delete(int id) throws SQLException {
-        return statementExecutor.executeUpdate(new Query.Builder().deleteFrom(ACCOUNT_TABLE_NAME).where(Condition.equalsTo(ACCOUNT_COLUMN_ID, id)).build());
+        try (Session session = sessionFactory.openSession()) {
+            session.beginTransaction();
+            int affectedRows = session.createQuery("delete from Account where id=:id")
+                    .setParameter("id", id)
+                    .executeUpdate();
+            session.getTransaction().commit();
+            return affectedRows;
+        }
     }
 
     @Override
@@ -82,4 +119,14 @@ public class AccountRepository extends JdbcRepository<Account> {
         return result;
     }
 
+    public void truncate() {
+        String query = "delete from " + ACCOUNT_TABLE_NAME;
+        try {
+            PreparedStatement preparedStatement = connection.prepareStatement(query);
+            preparedStatement.execute();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+    }
 }
